@@ -260,7 +260,7 @@ export default function Home() {
       />
 
       {/* --- Why Tamale Daa --- */}
-      <section className="section why-reliable">
+      <section className="section why-tamale-daa">
         <div className="container">
           <div className="why-grid">
             <div className="why-card">
