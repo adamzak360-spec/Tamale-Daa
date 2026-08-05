@@ -160,7 +160,7 @@ export async function testEmailSending(testEmail: string): Promise<{
                 <h1>Test Email</h1>
               </div>
               <div class="content">
-                <p>This is a test email from Reliable.</p>
+                <p>This is a test email from Tamale Daa.</p>
                 <p>If you received this email, your email configuration is working correctly!</p>
                 <p><strong>Email Provider:</strong> ${emailProvider}</p>
                 <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
@@ -172,7 +172,7 @@ export async function testEmailSending(testEmail: string): Promise<{
       text: `
 Test Email
 
-This is a test email from Reliable.
+This is a test email from Tamale Daa.
 If you received this email, your email configuration is working correctly!
 
 Email Provider: ${emailProvider}
@@ -182,7 +182,7 @@ Timestamp: ${new Date().toISOString()}
 
     const result = await emailService.sendEmail({
       to: testEmail,
-      subject: 'Test Email - Reliable Marketplace',
+      subject: 'Test Email - Tamale Daa Marketplace',
       html,
       text,
     })

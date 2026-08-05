@@ -5,7 +5,7 @@ export default function About() {
     <div className="static-page">
       <div className="static-page-container">
         <div className="page-hero">
-          <h1>About Reliable</h1>
+          <h1>About Tamale Daa</h1>
           <p className="hero-subtitle">Bringing Ghana's finest groceries to your doorstep</p>
         </div>
 
@@ -13,9 +13,9 @@ export default function About() {
           <section className="content-section">
             <h2>Our Story</h2>
             <p>
-              Reliable was founded with a simple mission: to make quality groceries
+              Tamale Daa was founded with a simple mission: to make quality groceries
               accessible to every household in Ghana. What started as a small neighbourhood shop has grown
-              into a modern, full-service Reliable Premium Market that serves customers across Tamale, the Northern Region
+              into a modern, full-service Tamale Daa Premium Market that serves customers across Tamale, the Northern Region
               and throughout Ghana.
             </p>
             <p>
@@ -36,7 +36,7 @@ export default function About() {
           <section className="content-section">
             <h2>Our Vision</h2>
             <p>
-              To become Ghana's most trusted Reliable Premium Market, setting the standard for quality,
+              To become Ghana's most trusted Tamale Daa Premium Market, setting the standard for quality,
               convenience, and customer satisfaction in the country's rapidly growing e-commerce landscape.
             </p>
           </section>
@@ -61,7 +61,7 @@ export default function About() {
               </div>
               <div className="value-card">
                 <div className="value-icon">&#128170;</div>
-                <h4>Reliable Service</h4>
+                <h4>Tamale Daa Service</h4>
                 <p>Our customer support team is always available to assist you with orders, inquiries, and any concerns you may have.</p>
               </div>
             </div>
@@ -70,14 +70,14 @@ export default function About() {
           <section className="content-section">
             <h2>Our Commitment</h2>
             <p>
-              At Reliable, we are committed to supporting the local economy by partnering
+              At Tamale Daa, we are committed to supporting the local economy by partnering
               with Ghanaian farmers and producers wherever possible. We believe in giving back to the community
               that has supported our growth, and we continuously strive to improve our services to meet the
               evolving needs of our customers.
             </p>
             <p>
               Whether you are a busy professional, a family shopping for the week, or someone who simply
-              appreciates the convenience of online grocery shopping, Reliable is here
+              appreciates the convenience of online grocery shopping, Tamale Daa is here
               to serve you.
             </p>
           </section>

@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
           <section className="content-section">
             <h2>1. Introduction</h2>
             <p>
-              Reliable ("we", "us", or "our") is committed to protecting your
+              Tamale Daa ("we", "us", or "our") is committed to protecting your
               personal information. This Privacy Policy explains how we collect, use, disclose,
               and safeguard your information when you visit our website or use our services.
               Please read this policy carefully.
@@ -114,7 +114,7 @@ export default function PrivacyPolicy() {
             <p>
               <strong>Email:</strong> support@reliable.com<br />
               <strong>Phone:</strong> +233 53 855 7781<br />
-              <strong>Address:</strong> Reliable Marketplace, Tamale, Northern Region, Ghana
+              <strong>Address:</strong> Tamale Daa Marketplace, Tamale, Northern Region, Ghana
             </p>
           </section>
         </div>

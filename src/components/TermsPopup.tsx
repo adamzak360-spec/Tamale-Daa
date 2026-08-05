@@ -41,7 +41,7 @@ export default function TermsPopup() {
         </button>
 
         <div className="terms-popup-content">
-          <h2>Welcome to Reliable!</h2>
+          <h2>Welcome to Tamale Daa!</h2>
           
           <p className="terms-popup-intro">
             Before placing an order, please take a moment to read our policies to ensure you have the best shopping experience with us.

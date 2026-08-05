@@ -2,7 +2,7 @@
 /**
  * Email Service
  * 
- * This service handles all email notifications for the Reliable.
+ * This service handles all email notifications for the Tamale Daa.
  * It uses a Vercel Serverless Function to send emails securely.
  */
 

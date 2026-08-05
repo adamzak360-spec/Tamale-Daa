@@ -103,7 +103,7 @@ export async function sendWelcomeEmail(
 
     const payload: EmailPayload = {
       to: customerEmail,
-      subject: `Welcome to Reliable, ${customerName}!`,
+      subject: `Welcome to Tamale Daa, ${customerName}!`,
       html,
       text,
       replyTo: 'support@reliable.com',
@@ -248,7 +248,7 @@ export async function sendRestockRequest(supplier: any, products: any[]): Promis
 
     const payload: EmailPayload = {
       to: supplier.email_address,
-      subject: `Restock Request from ${import.meta.env.VITE_COMPANY_NAME || 'Reliable'}`,
+      subject: `Restock Request from ${import.meta.env.VITE_COMPANY_NAME || 'Tamale Daa'}`,
       html,
       text,
       replyTo: import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com',

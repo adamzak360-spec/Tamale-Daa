@@ -39,7 +39,7 @@ export default function Contact() {
               <div className="contact-card">
                 <div className="contact-card-icon">&#128205;</div>
                 <h4>Location</h4>
-                <p>Reliable Marketplace</p>
+                <p>Tamale Daa Marketplace</p>
                 <p className="contact-note">Tamale, Northern Region, Ghana</p>
               </div>
               <div className="contact-card">

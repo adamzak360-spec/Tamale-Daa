@@ -1,13 +1,13 @@
 /**
  * Email Templates
  * 
- * Professional HTML email templates for Reliable
+ * Professional HTML email templates for Tamale Daa
  * All templates are responsive and include company branding
  */
 
 import { Order, CartItem } from '../types'
 
-const COMPANY_NAME = 'Reliable'
+const COMPANY_NAME = 'Tamale Daa'
 const COMPANY_WEBSITE = 'https://reliable-now.vercel.app'
 const SUPPORT_EMAIL = 'support@reliable.com'
 const PHONE = '+233 53 855 7781'

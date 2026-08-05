@@ -322,7 +322,7 @@ const SupplierManagement: React.FC = () => {
                       name="company_name"
                       value={formData.company_name}
                       onChange={handleInputChange}
-                      placeholder="e.g. Reliable Wholesale"
+                      placeholder="e.g. Tamale Daa Wholesale"
                     />
                   </div>
                   <div className="form-group">

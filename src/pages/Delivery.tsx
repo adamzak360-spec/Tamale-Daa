@@ -13,7 +13,7 @@ export default function Delivery() {
           <section className="content-section">
             <h2>Delivery Areas</h2>
             <p>
-              Reliable currently delivers to all areas across Ghana. Our primary hub is located in Tamale, Northern Region, but we serve customers nationwide.
+              Tamale Daa currently delivers to all areas across Ghana. Our primary hub is located in Tamale, Northern Region, but we serve customers nationwide.
             </p>
             <p>
               Within the Northern Region, we cover Tamale Central, Nyohini, Lamashegu, Vittin, 

@@ -259,7 +259,7 @@ export default function Home() {
         isLoading={isLoading}
       />
 
-      {/* --- Why Reliable --- */}
+      {/* --- Why Tamale Daa --- */}
       <section className="section why-reliable">
         <div className="container">
           <div className="why-grid">
@@ -305,7 +305,7 @@ export default function Home() {
         <div className="container">
           <div className="newsletter-card">
             <div className="newsletter-content">
-              <h3>Join the Reliable Community</h3>
+              <h3>Join the Tamale Daa Community</h3>
               <p>Subscribe to receive updates, access to exclusive deals, and more.</p>
               <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
                 <input type="email" placeholder="Enter your email" required />
