@@ -33,7 +33,7 @@ export default function Contact() {
               <div className="contact-card">
                 <div className="contact-card-icon">&#9993;</div>
                 <h4>Email</h4>
-                <p>support@reliable.com</p>
+                <p>support@tamaledaa.com</p>
                 <p className="contact-note">We respond within 24 hours</p>
               </div>
               <div className="contact-card">

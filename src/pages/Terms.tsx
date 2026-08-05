@@ -135,7 +135,7 @@ export default function Terms() {
               For any questions regarding these Terms and Conditions, please contact us at:
             </p>
             <p>
-              <strong>Email:</strong> support@reliable.com<br />
+              <strong>Email:</strong> support@tamaledaa.com<br />
               <strong>Phone:</strong> +233 53 855 7781
             </p>
           </section>

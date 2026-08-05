@@ -10,11 +10,11 @@ export default function Footer() {
         <div className="footer-section">
           <div className="footer-brand">
             <div className="footer-logo">
-              <span className="footer-logo-text">RELIABLE</span>
+              <span className="footer-logo-text">TAMALE DAA</span>
             </div>
             <p className="footer-tagline">Premium Marketplace</p>
             <p className="footer-description">
-              RELIABLE is your trusted online marketplace for premium products.
+              TAMALE DAA is your trusted online marketplace for premium products.
               We deliver quality, convenience, and exceptional service straight
               to your doorstep. Shop with confidence and enjoy a seamless
               shopping experience.
@@ -57,7 +57,7 @@ export default function Footer() {
             </div>
             <div className="contact-item">
               <Mail size={18} />
-              <span>support@reliable.com</span>
+              <span>support@tamaledaa.com</span>
             </div>
             <div className="contact-item">
               <MapPin size={18} />
@@ -81,7 +81,7 @@ export default function Footer() {
             <a href="#" className="social-link" title="WhatsApp">WhatsApp</a>
           </div>
           <p className="footer-copyright">
-            &copy; {new Date().getFullYear()} RELIABLE. All rights reserved.
+            &copy; {new Date().getFullYear()} TAMALE DAA. All rights reserved.
           </p>
         </div>
       </div>

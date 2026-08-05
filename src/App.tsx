@@ -118,7 +118,7 @@ function AppShell() {
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <Link to="/" className="brand-logo">
-              <span className="logo-text">RELIABLE</span>
+              <span className="logo-text">TAMALE DAA</span>
             </Link>
           </div>
 
@@ -154,7 +154,7 @@ function AppShell() {
       <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-logo">
-            <span>RELIABLE</span>
+            <span>TAMALE DAA</span>
           </div>
           <button onClick={toggleMenu}><X size={24} /></button>
         </div>

@@ -39,7 +39,7 @@ export async function sendOrderConfirmationEmail(
       subject: `Order Confirmation - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -73,7 +73,7 @@ export async function sendOrderStatusUpdateEmail(
       subject: `Order Status Update - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -106,7 +106,7 @@ export async function sendWelcomeEmail(
       subject: `Welcome to Tamale Daa, ${customerName}!`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -131,7 +131,7 @@ export async function sendAdminNewOrderNotification(
   order: Order & { id: string }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com'
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@tamaledaa.com'
 
     const { html, text } = getAdminNewOrderTemplate(order)
 
@@ -222,7 +222,7 @@ import {
  */
 export async function sendLowStockAlert(products: any[]): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com'
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@tamaledaa.com'
     const { html, text } = getLowStockAlertTemplate(products)
 
     const payload: EmailPayload = {
@@ -251,7 +251,7 @@ export async function sendRestockRequest(supplier: any, products: any[]): Promis
       subject: `Restock Request from ${import.meta.env.VITE_COMPANY_NAME || 'Tamale Daa'}`,
       html,
       text,
-      replyTo: import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com',
+      replyTo: import.meta.env.VITE_ADMIN_EMAIL || 'admin@tamaledaa.com',
     }
 
     return await emailService.sendEmail(payload)
@@ -276,7 +276,7 @@ export async function sendOrderApprovedEmail(
       subject: `Order Approved - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -309,7 +309,7 @@ export async function sendPaymentConfirmedEmail(
       subject: `Payment Confirmed - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -342,7 +342,7 @@ export async function sendReadyForPickupEmail(
       subject: `Ready for Pickup - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -375,7 +375,7 @@ export async function sendOutForDeliveryEmail(
       subject: `Out for Delivery - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -408,7 +408,7 @@ export async function sendDeliveredEmail(
       subject: `Order Delivered - Order #${order.id.slice(0, 8)}`,
       html,
       text,
-      replyTo: 'support@reliable.com',
+      replyTo: 'support@tamaledaa.com',
     }
 
     const result = await emailService.sendEmail(payload)
@@ -434,7 +434,7 @@ export async function sendAdminNewCustomerNotification(
   customerEmail: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com'
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@tamaledaa.com'
 
     const { html, text } = getAdminNewCustomerTemplate(customerName, customerEmail)
 
@@ -468,7 +468,7 @@ export async function sendAdminOrderCancellationNotification(
   order: Order & { id: string }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@reliable.com'
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@tamaledaa.com'
 
     const { html, text } = getAdminOrderCancellationTemplate(order)
 

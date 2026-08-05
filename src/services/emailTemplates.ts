@@ -8,8 +8,8 @@
 import { Order, CartItem } from '../types'
 
 const COMPANY_NAME = 'Tamale Daa'
-const COMPANY_WEBSITE = 'https://reliable-now.vercel.app'
-const SUPPORT_EMAIL = 'support@reliable.com'
+const COMPANY_WEBSITE = 'https://tamale-daa.vercel.app'
+const SUPPORT_EMAIL = 'support@tamaledaa.com'
 const PHONE = '+233 53 855 7781'
 const SUPPORT_WHATSAPP = '+233 20 335 5542'
 const COMPANY_LOCATION = 'Tamale, Ghana'

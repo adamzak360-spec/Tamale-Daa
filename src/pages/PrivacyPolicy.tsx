@@ -92,7 +92,7 @@ export default function PrivacyPolicy() {
             <p>
               You have the right to access, update, or delete your personal information.
               You may also request that we stop using your information for certain purposes.
-              To exercise these rights, please contact us at support@reliable.com.
+              To exercise these rights, please contact us at support@tamaledaa.com.
             </p>
           </section>
 
@@ -112,7 +112,7 @@ export default function PrivacyPolicy() {
               practices, please contact us at:
             </p>
             <p>
-              <strong>Email:</strong> support@reliable.com<br />
+              <strong>Email:</strong> support@tamaledaa.com<br />
               <strong>Phone:</strong> +233 53 855 7781<br />
               <strong>Address:</strong> Tamale Daa Marketplace, Tamale, Northern Region, Ghana
             </p>
