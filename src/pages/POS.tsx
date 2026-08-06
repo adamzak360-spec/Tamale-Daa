@@ -21,6 +21,8 @@ interface POSState {
   selectedCategory: string
   showReceipt: boolean
   lastOrder: Order | null
+  lastPaymentMethod: string
+  lastAmountPaid: number
   customerName: string
   customerPhone: string
   customerEmail: string
@@ -38,6 +40,8 @@ export default function POS() {
     selectedCategory: '',
     showReceipt: false,
     lastOrder: null,
+    lastPaymentMethod: 'cash',
+    lastAmountPaid: 0,
     customerName: '',
     customerPhone: '',
     customerEmail: '',
@@ -169,11 +173,15 @@ export default function POS() {
         source: 'POS', // Mark as POS order
       }
 
+      const currentAmountPaid = state.amountPaid
+      const currentPaymentMethod = state.paymentMethod
       const order = await createOrder(orderData as any)
 
       setState(prev => ({
         ...prev,
         lastOrder: order,
+        lastPaymentMethod: currentPaymentMethod,
+        lastAmountPaid: currentAmountPaid,
         showReceipt: true,
         cartItems: [],
         customerName: '',
@@ -442,9 +450,9 @@ export default function POS() {
               </div>
 
               <div className="pos-receipt-payment">
-                <p><strong>Payment Method:</strong> {state.paymentMethod.toUpperCase()}</p>
-                <p><strong>Amount Paid:</strong> {formatCurrency(state.amountPaid)}</p>
-                <p><strong>Change:</strong> {formatCurrency(Math.max(0, state.amountPaid - state.lastOrder.total))}</p>
+                <p><strong>Payment Method:</strong> {(state.lastPaymentMethod || state.paymentMethod).toUpperCase()}</p>
+                <p><strong>Amount Paid:</strong> {formatCurrency(state.lastAmountPaid || state.amountPaid || state.lastOrder.total)}</p>
+                <p><strong>Change:</strong> {formatCurrency(Math.max(0, (state.lastAmountPaid || state.amountPaid || state.lastOrder.total) - state.lastOrder.total))}</p>
               </div>
 
               <p className="pos-receipt-footer">Thank you for your purchase!</p>
