@@ -11,6 +11,7 @@ const CURRENCY_SYMBOL = 'GH₵'
  * @param value - The numeric amount to format
  * @returns Formatted string, e.g. "GH₵12.50"
  */
-export function formatCurrency(value: number): string {
-  return `${CURRENCY_SYMBOL}${value.toFixed(2)}`
+export function formatCurrency(value: number | undefined | null): string {
+  const num = typeof value === 'number' && !isNaN(value) ? value : 0
+  return `${CURRENCY_SYMBOL}${num.toFixed(2)}`
 }
