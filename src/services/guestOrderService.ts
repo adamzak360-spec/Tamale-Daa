@@ -156,10 +156,37 @@ export async function createGuestOrder(
 
   try {
     console.log('[Guest Order] Connecting to Supabase...')
-    const { data, error, status, statusText } = await supabase
+    let { data, error, status, statusText } = await supabase
       .from('orders')
       .insert([orderData])
       .select()
+
+    if (error && (error.code === 'PGRST204' || error.message?.includes('column'))) {
+      console.warn('[Guest Order] Some columns missing in orders table, retrying with core columns...');
+      const coreOrderData = {
+        customer_name: orderData.customer_name,
+        customer_email: orderData.customer_email,
+        customer_phone: orderData.customer_phone,
+        delivery_address: orderData.delivery_address,
+        city: orderData.city,
+        region: orderData.region,
+        items: orderData.items,
+        subtotal: orderData.subtotal,
+        delivery_fee: orderData.delivery_fee,
+        total: orderData.total,
+        status: orderData.status,
+        payment_status: orderData.payment_status,
+        user_id: null,
+      };
+      const retryRes = await supabase
+        .from('orders')
+        .insert([coreOrderData])
+        .select();
+      data = retryRes.data;
+      error = retryRes.error;
+      status = retryRes.status;
+      statusText = retryRes.statusText;
+    }
 
     if (error) {
       console.error('[Guest Order] Supabase insert error:', {

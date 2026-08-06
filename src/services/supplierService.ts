@@ -33,7 +33,10 @@ export const supplierService = {
       .select('*')
       .order('company_name', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.warn('[SupplierService] Error fetching suppliers (table might be missing):', error.message);
+      return [];
+    }
     return (data || []) as Supplier[];
   },
 
