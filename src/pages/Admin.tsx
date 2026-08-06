@@ -1058,15 +1058,15 @@ export default function Admin() {
                   </div>
                   <div className="detail-item summary-row">
                     <span className="detail-label">Subtotal:</span>
-                    <span className="detail-value">{formatCurrency(selectedOrder.subtotal)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.subtotal || selectedOrder.items?.reduce((s, i) => s + (i.price * i.quantity), 0) || 0)}</span>
                   </div>
                   <div className="detail-item summary-row">
                     <span className="detail-label">Delivery Fee:</span>
-                    <span className="detail-value">{formatCurrency(selectedOrder.delivery_fee)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.delivery_fee || 0)}</span>
                   </div>
                   <div className="detail-item summary-row grand-total">
                     <span className="detail-label">Grand Total:</span>
-                    <span className="detail-value">{formatCurrency(selectedOrder.total)}</span>
+                    <span className="detail-value">{formatCurrency(selectedOrder.total || ((selectedOrder.subtotal || selectedOrder.items?.reduce((s, i) => s + (i.price * i.quantity), 0) || 0) + (selectedOrder.delivery_fee || 0)))}</span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Payment Status:</span>

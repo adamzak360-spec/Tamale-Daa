@@ -636,3 +636,70 @@ tr:hover td {
 .btn-quick-size:hover {
   background-color: #e5e7eb;
 }
+
+/* Order Details Modal Popup Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.modal-content.order-details-modal {
+  background: white;
+  width: 100%;
+  max-width: 850px;
+  max-height: 88vh;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: modalScaleIn 0.2s ease-out;
+}
+
+.modal-content.order-details-modal .modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+}
+
+.modal-content.order-details-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.modal-content.order-details-modal .close-modal {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.modal-content.order-details-modal .close-modal:hover {
+  background-color: var(--color-border-light);
+  color: var(--color-text);
+}
+
+/* Modal Scrollable Body */
+.modal-content.order-details-modal > div:not(.modal-header) {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
