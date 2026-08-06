@@ -627,3 +627,30 @@
     font-family: 'Courier New', monospace;
   }
 }
+
+/* Strict Print Styles for Single Page Receipt */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .pos-receipt-modal,
+  .pos-receipt-modal * {
+    visibility: visible;
+  }
+  .pos-receipt-modal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    background: white !important;
+  }
+  .pos-close-receipt,
+  .pos-print-btn {
+    display: none !important;
+  }
+  @page {
+    size: portrait;
+    margin: 10mm;
+  }
+}
