@@ -80,6 +80,9 @@ const defaultFormState = {
   delivery_fee_dhl: '',
   delivery_fee_ups: '',
   delivery_fee_fedex: '',
+  specifications: {} as Record<string, string>,
+  newSpecKey: '',
+  newSpecValue: '',
 }
 
 export default function Admin() {
@@ -198,6 +201,12 @@ export default function Admin() {
     e.preventDefault()
     if (!validateForm()) return
 
+    if (Object.keys(formData.videoUploadErrors).length > 0) {
+      setError('Please resolve video upload validation errors before submitting.')
+      setIsSubmitting(false)
+      return
+    }
+
     setIsSubmitting(true)
     setError('')
 
@@ -240,6 +249,7 @@ export default function Admin() {
         delivery_fee_dhl: formData.delivery_fee_dhl ? parseFloat(formData.delivery_fee_dhl) : 0,
         delivery_fee_ups: formData.delivery_fee_ups ? parseFloat(formData.delivery_fee_ups) : 0,
         delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
+        specifications: formData.specifications,
       }
 
       let savedProduct: Product
@@ -320,6 +330,11 @@ export default function Admin() {
       delivery_fee_dhl: (product.delivery_fee_dhl || 0).toString(),
       delivery_fee_ups: (product.delivery_fee_ups || 0).toString(),
       delivery_fee_fedex: (product.delivery_fee_fedex || 0).toString(),
+      specifications: typeof product.specifications === 'string' 
+        ? (() => { try { return JSON.parse(product.specifications); } catch { return {}; } })()
+        : (product.specifications || {}),
+      newSpecKey: '',
+      newSpecValue: '',
     })
     setView('edit')
   }
@@ -1531,6 +1546,65 @@ export default function Admin() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Dynamic Product Specifications System */}
+            <div className="form-section full-width" style={{ marginTop: '24px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+              <h3>Dynamic Product Specifications</h3>
+              <p className="help-text" style={{ marginBottom: '15px', color: '#4b5563', fontSize: '14px' }}>
+                Add optional specifications such as Weight, Weight Unit, Colour, Multiple Colours, Material, Size, Packaging, Brand, Manufacturer, Country of Origin, Food Information, Pharmacy Information, Electronics Information, Clothing Information, Warranty, Return Policy, Delivery Information, Frequently Asked Questions, Supplier Associations, etc.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '15px' }}>
+                <input
+                  type="text"
+                  placeholder="Specification Name (e.g. Material, Warranty)"
+                  value={formData.newSpecKey}
+                  onChange={(e) => setFormData({ ...formData, newSpecKey: e.target.value })}
+                  style={{ padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                />
+                <input
+                  type="text"
+                  placeholder="Specification Value (e.g. 100% Cotton, 1 Year)"
+                  value={formData.newSpecValue}
+                  onChange={(e) => setFormData({ ...formData, newSpecValue: e.target.value })}
+                  style={{ padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (formData.newSpecKey.trim() && formData.newSpecValue.trim()) {
+                      const updated = { ...formData.specifications, [formData.newSpecKey.trim()]: formData.newSpecValue.trim() }
+                      setFormData({ ...formData, specifications: updated, newSpecKey: '', newSpecValue: '' })
+                    }
+                  }}
+                  className="btn-secondary"
+                  style={{ padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Add Spec
+                </button>
+              </div>
+
+              {Object.keys(formData.specifications).length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#f9fafb', padding: '15px', borderRadius: '8px' }}>
+                  {Object.entries(formData.specifications).map(([key, val]) => (
+                    <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                      <span><strong>{key}:</strong> {String(val)}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = { ...formData.specifications }
+                          delete updated[key]
+                          setFormData({ ...formData, specifications: updated })
+                        }}
+                        style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="form-actions">

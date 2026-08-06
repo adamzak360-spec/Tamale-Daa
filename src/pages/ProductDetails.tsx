@@ -206,6 +206,32 @@ export default function ProductDetails() {
   if (product.product_code) {
     specItems.push({ label: 'Product Code', value: product.product_code })
   }
+
+  // Parse dynamic specifications (JSONB or object or string)
+  if (product.specifications) {
+    try {
+      const parsedSpecs = typeof product.specifications === 'string'
+        ? JSON.parse(product.specifications)
+        : product.specifications
+
+      if (parsedSpecs && typeof parsedSpecs === 'object') {
+        Object.entries(parsedSpecs).forEach(([key, val]) => {
+          if (val !== undefined && val !== null && String(val).trim() !== '') {
+            const formattedLabel = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+            const formattedValue = Array.isArray(val) ? val.join(', ') : String(val)
+            if (!specItems.some(item => item.label.toLowerCase() === formattedLabel.toLowerCase())) {
+              specItems.push({ label: formattedLabel, value: formattedValue })
+            }
+          }
+        })
+      }
+    } catch {
+      if (typeof product.specifications === 'string' && product.specifications.trim() !== '') {
+        specItems.push({ label: 'Specifications', value: product.specifications })
+      }
+    }
+  }
+
   // Always show these
   specItems.push({ label: 'Category', value: product.category })
   specItems.push({ label: 'Stock Available', value: `${product.stock_quantity} units` })

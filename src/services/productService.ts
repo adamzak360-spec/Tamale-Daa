@@ -20,8 +20,8 @@ function clearCache() {
 }
 
 // Supported video formats
-const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/quicktime', 'video/webm']
-const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm']
+const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/quicktime', 'video/webm', 'video/m4v', 'video/x-m4v', 'application/octet-stream', '']
+const SUPPORTED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.webm', '.m4v']
 
 export async function getAllProducts(): Promise<Product[]> {
   if (isCacheValid() && productsCache) {
@@ -210,16 +210,16 @@ export function validateVideoFile(file: File): { valid: boolean; error?: string 
     return { valid: false, error: `Video file is too large. Maximum size is 500MB, but got ${(file.size / 1024 / 1024).toFixed(2)}MB.` }
   }
 
-  // Check MIME type
-  if (!SUPPORTED_VIDEO_FORMATS.includes(file.type)) {
-    return { valid: false, error: `Unsupported video format: ${file.type}. Supported formats are: MP4, MOV, WEBM.` }
-  }
-
-  // Check file extension as additional validation
+  // Check file extension as primary/reliable validation
   const fileName = file.name.toLowerCase()
   const hasValidExtension = SUPPORTED_VIDEO_EXTENSIONS.some(ext => fileName.endsWith(ext))
   if (!hasValidExtension) {
     return { valid: false, error: `Unsupported file extension. Supported formats are: ${SUPPORTED_VIDEO_EXTENSIONS.join(', ')}` }
+  }
+
+  // Check MIME type if present and not generic
+  if (file.type && file.type !== 'application/octet-stream' && !SUPPORTED_VIDEO_FORMATS.includes(file.type)) {
+    return { valid: false, error: `Unsupported video format: ${file.type}. Supported formats are: MP4, MOV, WEBM, M4V.` }
   }
 
   return { valid: true }
