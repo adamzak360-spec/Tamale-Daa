@@ -26,6 +26,7 @@ interface GuestOrderPayload {
   paystack_reference?: string
   amount_paid?: number
   payment_date?: string
+  source?: string
 }
 
 /**
@@ -143,6 +144,7 @@ export async function createGuestOrder(
     paystack_reference: payload.paystack_reference || null,
     amount_paid: payload.amount_paid || null,
     payment_date: payload.payment_date || null,
+    source: payload.source || null,
     user_id: null,
   }
 
@@ -156,36 +158,42 @@ export async function createGuestOrder(
 
   try {
     console.log('[Guest Order] Connecting to Supabase...')
-    let { data, error, status, statusText } = await supabase
-      .from('orders')
-      .insert([orderData])
-      .select()
+    let payloadToInsert: any = { ...orderData };
+    let data: any = null;
+    let error: any = null;
+    let status = 200;
+    let statusText = 'OK';
 
-    if (error && (error.code === 'PGRST204' || error.message?.includes('column'))) {
-      console.warn('[Guest Order] Some columns missing in orders table, retrying with core columns...');
-      const coreOrderData = {
-        customer_name: orderData.customer_name,
-        customer_email: orderData.customer_email,
-        customer_phone: orderData.customer_phone,
-        delivery_address: orderData.delivery_address,
-        city: orderData.city,
-        region: orderData.region,
-        items: orderData.items,
-        subtotal: orderData.subtotal,
-        delivery_fee: orderData.delivery_fee,
-        total: orderData.total,
-        status: orderData.status,
-        payment_status: orderData.payment_status,
-        user_id: null,
-      };
-      const retryRes = await supabase
+    // Self-healing insertion loop to gracefully handle missing columns in Supabase schema cache
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const res = await supabase
         .from('orders')
-        .insert([coreOrderData])
+        .insert([payloadToInsert])
         .select();
-      data = retryRes.data;
-      error = retryRes.error;
-      status = retryRes.status;
-      statusText = retryRes.statusText;
+      
+      data = res.data;
+      error = res.error;
+      status = res.status;
+      statusText = res.statusText;
+
+      if (!error) {
+        break;
+      }
+
+      if (error.code === 'PGRST204' || error.message?.includes('column') || error.message?.includes('schema cache')) {
+        const match = error.message.match(/['"]([a-zA-Z0-9_]+)['"] column/);
+        if (match && match[1]) {
+          const missingCol = match[1];
+          console.warn(`[Guest Order] Column '${missingCol}' missing in database. Retrying without it...`);
+          if (missingCol !== 'notes' && payloadToInsert[missingCol] !== undefined) {
+            const noteText = `${missingCol}: ${payloadToInsert[missingCol]}`;
+            payloadToInsert.notes = payloadToInsert.notes ? `${payloadToInsert.notes} | ${noteText}` : noteText;
+          }
+          delete payloadToInsert[missingCol];
+          continue;
+        }
+      }
+      break;
     }
 
     if (error) {
@@ -198,7 +206,6 @@ export async function createGuestOrder(
         statusText,
       })
 
-      // Provide more helpful error messages
       console.error("RAW SUPABASE ERROR:", error);
       throw error;
     }
