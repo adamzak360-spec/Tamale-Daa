@@ -449,15 +449,15 @@ export default function POS() {
               <div className="pos-receipt-totals">
                 <div className="pos-receipt-total-row">
                   <span>Subtotal:</span>
-                  <span>{formatCurrency(state.lastSubtotal || state.lastOrder.subtotal || state.lastTotal)}</span>
+                  <span>{formatCurrency(state.lastSubtotal || state.lastOrder?.subtotal || state.lastTotal || state.lastOrder?.items?.reduce((s: number, i: any) => s + (i.price * i.quantity), 0) || 0)}</span>
                 </div>
                 <div className="pos-receipt-total-row">
                   <span>Delivery:</span>
-                  <span>{formatCurrency(state.lastDeliveryFee ?? state.lastOrder.delivery_fee ?? 0)}</span>
+                  <span>{formatCurrency(state.lastDeliveryFee ?? state.lastOrder?.delivery_fee ?? 0)}</span>
                 </div>
                 <div className="pos-receipt-total-row pos-receipt-grand-total">
                   <span>Total:</span>
-                  <span>{formatCurrency(state.lastTotal || state.lastOrder.total)}</span>
+                  <span>{formatCurrency(state.lastTotal || state.lastOrder?.total || state.lastSubtotal || state.lastOrder?.items?.reduce((s: number, i: any) => s + (i.price * i.quantity), 0) || 0)}</span>
                 </div>
               </div>
 
