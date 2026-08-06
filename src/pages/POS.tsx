@@ -23,6 +23,9 @@ interface POSState {
   lastOrder: Order | null
   lastPaymentMethod: string
   lastAmountPaid: number
+  lastSubtotal: number
+  lastDeliveryFee: number
+  lastTotal: number
   customerName: string
   customerPhone: string
   customerEmail: string
@@ -42,6 +45,9 @@ export default function POS() {
     lastOrder: null,
     lastPaymentMethod: 'cash',
     lastAmountPaid: 0,
+    lastSubtotal: 0,
+    lastDeliveryFee: 0,
+    lastTotal: 0,
     customerName: '',
     customerPhone: '',
     customerEmail: '',
@@ -175,6 +181,9 @@ export default function POS() {
 
       const currentAmountPaid = state.amountPaid
       const currentPaymentMethod = state.paymentMethod
+      const currentSubtotal = subtotal
+      const currentDeliveryFee = deliveryFee
+      const currentTotal = total
       const order = await createOrder(orderData as any)
 
       setState(prev => ({
@@ -182,6 +191,9 @@ export default function POS() {
         lastOrder: order,
         lastPaymentMethod: currentPaymentMethod,
         lastAmountPaid: currentAmountPaid,
+        lastSubtotal: currentSubtotal,
+        lastDeliveryFee: currentDeliveryFee,
+        lastTotal: currentTotal,
         showReceipt: true,
         cartItems: [],
         customerName: '',
@@ -437,22 +449,22 @@ export default function POS() {
               <div className="pos-receipt-totals">
                 <div className="pos-receipt-total-row">
                   <span>Subtotal:</span>
-                  <span>{formatCurrency(state.lastOrder.subtotal)}</span>
+                  <span>{formatCurrency(state.lastSubtotal || state.lastOrder.subtotal || state.lastTotal)}</span>
                 </div>
                 <div className="pos-receipt-total-row">
                   <span>Delivery:</span>
-                  <span>{formatCurrency(state.lastOrder.delivery_fee)}</span>
+                  <span>{formatCurrency(state.lastDeliveryFee ?? state.lastOrder.delivery_fee ?? 0)}</span>
                 </div>
                 <div className="pos-receipt-total-row pos-receipt-grand-total">
                   <span>Total:</span>
-                  <span>{formatCurrency(state.lastOrder.total)}</span>
+                  <span>{formatCurrency(state.lastTotal || state.lastOrder.total)}</span>
                 </div>
               </div>
 
               <div className="pos-receipt-payment">
                 <p><strong>Payment Method:</strong> {(state.lastPaymentMethod || state.paymentMethod).toUpperCase()}</p>
-                <p><strong>Amount Paid:</strong> {formatCurrency(state.lastAmountPaid || state.amountPaid || state.lastOrder.total)}</p>
-                <p><strong>Change:</strong> {formatCurrency(Math.max(0, (state.lastAmountPaid || state.amountPaid || state.lastOrder.total) - state.lastOrder.total))}</p>
+                <p><strong>Amount Paid:</strong> {formatCurrency(state.lastAmountPaid || state.amountPaid || state.lastTotal || state.lastOrder.total)}</p>
+                <p><strong>Change:</strong> {formatCurrency(Math.max(0, (state.lastAmountPaid || state.amountPaid || state.lastTotal || state.lastOrder.total) - (state.lastTotal || state.lastOrder.total)))}</p>
               </div>
 
               <p className="pos-receipt-footer">Thank you for your purchase!</p>
