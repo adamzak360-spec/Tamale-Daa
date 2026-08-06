@@ -37,7 +37,10 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>) =
     console.warn('[OrderService] Low stock warnings:', stockValidation.lowStockWarnings);
   }
   
-  let payloadToInsert: any = { ...orderData };
+  let payloadToInsert: any = { 
+    ...orderData,
+    total_amount: (orderData as any).total_amount !== undefined ? (orderData as any).total_amount : (orderData.total !== undefined ? orderData.total : 0)
+  };
   let data: any = null;
   let error: any = null;
   let status = 200;
