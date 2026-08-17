@@ -10,7 +10,6 @@ import {
   verifyPayment, 
   generatePaymentReference,
 } from '../services/paystackService'
-import { handleNewOrder } from '../api/emailNotificationHandler'
 import { formatCurrency } from '../utils/currency'
 import './Checkout.css'
 
@@ -157,7 +156,7 @@ export default function Checkout() {
           console.log('[Checkout] Using PaystackPop inline popup')
           const paystack = new (window as any).PaystackPop()
           paystack.newTransaction({
-            key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_fb22b0b5a5c891e1a807814bdef8f5326d370ccc',
+            key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
             email: formData.email,
             amount: Math.round(total * 100),
             ref: reference,
@@ -178,16 +177,11 @@ export default function Checkout() {
         }
       }
 
-      // Fallback redirect or direct simulation for testing if authorization URL points to mock
-      if (paymentInit.data?.authorization_url?.includes('checkout.paystack.com/pay/')) {
-        console.log('[Checkout] Simulating successful payment verification for testing mode')
-        setTimeout(() => {
-          handlePaymentVerification()
-        }, 1000)
-        return
+      const authorizationUrl = paymentInit.data?.authorization_url
+      if (!authorizationUrl) {
+        throw new Error('Paystack did not return an authorization URL')
       }
-
-      window.location.href = paymentInit.data.authorization_url
+      window.location.href = authorizationUrl
     } catch (error: any) {
       console.error('[Checkout] Payment initialization failed:', error)
       alert(`Payment initialization failed: ${error.message}`)
@@ -266,15 +260,6 @@ export default function Checkout() {
 
         console.log('[Checkout] Order created successfully:', result.id)
         
-        // Send email notifications
-        try {
-          await handleNewOrder(result, formData.email)
-          console.log('[Checkout] Email notifications sent')
-        } catch (emailError) {
-          console.warn('[Checkout] Failed to send email notifications:', emailError)
-          // Don't block the checkout flow if email fails
-        }
-
         localStorage.removeItem('checkout_state')
         clearCart()
         alert('Payment successful! Your order has been placed. A confirmation email has been sent.')

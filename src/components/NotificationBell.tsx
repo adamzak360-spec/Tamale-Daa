@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import './NotificationBell.css'
 
 export default function NotificationBell() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -74,7 +74,7 @@ export default function NotificationBell() {
     }
     
     if (notification.order_id) {
-      navigate(`/customer/orders/${notification.order_id}`)
+      navigate(isAdmin ? `/admin?order=${notification.order_id}` : `/customer/orders/${notification.order_id}`)
       setIsOpen(false)
     }
   }
