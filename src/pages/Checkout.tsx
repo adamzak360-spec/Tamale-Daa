@@ -204,11 +204,25 @@ export default function Checkout() {
       // Verify payment with Paystack
       const verification = await verifyPayment(paymentReference)
 
-      if (verification.status && verification.data.status === 'success') {
-        console.log('[Checkout] Payment verified successfully')
+      const expectedAmountKobo = Math.round(total * 100)
+      const verifiedAmountKobo = Number(verification.data.amount)
+      const verifiedEmail = verification.data.customer?.email?.trim().toLowerCase()
+      const checkoutEmail = formData.email.trim().toLowerCase()
 
-        // Create order with payment details
-        const orderPayload = {
+      if (!verification.status || verification.data.status !== 'success') {
+        throw new Error('Payment was not successful. Please try again.')
+      }
+      if (!Number.isInteger(verifiedAmountKobo) || verifiedAmountKobo !== expectedAmountKobo) {
+        throw new Error('The verified payment amount does not match this order. The order was not created.')
+      }
+      if (verifiedEmail && verifiedEmail !== checkoutEmail) {
+        throw new Error('The verified payment email does not match this checkout. The order was not created.')
+      }
+
+      console.log('[Checkout] Payment verified successfully with matching amount and customer')
+
+      // Create order with payment details
+      const orderPayload = {
           customer_name: formData.fullName,
           customer_email: formData.email,
           customer_phone: formData.phone,
@@ -270,9 +284,6 @@ export default function Checkout() {
           // For guests, navigate to home or a success page since they can't access /customer/orders
           navigate('/')
         }
-      } else {
-        throw new Error('Payment was not successful. Please try again.')
-      }
     } catch (error: any) {
       console.error('[Checkout] Payment verification failed:', error)
       
