@@ -48,9 +48,12 @@ export const markAllAsRead = async (userId: string): Promise<void> => {
 export const createNotification = async (notification: Omit<Notification, 'id' | 'is_read' | 'created_at'>): Promise<void> => {
   if (!supabase) return
   
-  const { error } = await supabase
-    .from('notifications')
-    .insert([notification])
+  const { error } = await supabase.rpc('create_self_notification', {
+    p_title: notification.title,
+    p_message: notification.message,
+    p_type: notification.type,
+    p_order_id: notification.order_id ?? null,
+  })
 
   if (error) {
     console.error('Error creating notification:', error)
