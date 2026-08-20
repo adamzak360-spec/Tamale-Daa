@@ -51,7 +51,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return [...prevCart, { ...cartItem, quantity: cartItem.quantity || 1 }]
     })
-    setIsCartOpen(true)
+    // Intentionally do NOT open the cart drawer here. The customer stays
+    // on the current page to keep browsing; only tapping the cart icon
+    // opens the drawer with the Proceed to Checkout option.
   }
 
   const removeFromCart = (productId: string, selectedSize?: string) => {
