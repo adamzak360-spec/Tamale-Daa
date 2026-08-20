@@ -84,6 +84,8 @@ function AppShell() {
   const [wishlistCount, setWishlistCount] = useState(0)
 
   // Header wishlist badge: count of saved products (logged-in customers only)
+  // Updates INSTANTLY via wishlist-changed events dispatched by every save/remove
+  // (optimistic update), then re-verified from the DB for accuracy.
   useEffect(() => {
     let cancelled = false
     const loadCount = async () => {
@@ -97,9 +99,19 @@ function AppShell() {
     }
     if (user) {
       loadCount()
-      // Refresh periodically so the badge stays in sync after saves/removes
+      // Instant sync: any card/product page save/remove fires this event
+      const onWishlistChanged = (e: Event) => {
+        const detail = (e as CustomEvent).detail as { added: boolean }
+        if (!cancelled) {
+          setWishlistCount(prev => Math.max(0, prev + (detail?.added ? 1 : -1)))
+          // Re-verify from DB shortly after to correct any double-toggle races
+          setTimeout(loadCount, 1500)
+        }
+      }
+      // Refresh periodically so the badge stays in sync after saves/removes from other tabs
       const timer = setInterval(loadCount, 15000)
-      return () => { cancelled = true; clearInterval(timer) }
+      window.addEventListener('wishlist-changed', onWishlistChanged)
+      return () => { cancelled = true; clearInterval(timer); window.removeEventListener('wishlist-changed', onWishlistChanged) }
     } else {
       if (!cancelled) setWishlistCount(0)
     }

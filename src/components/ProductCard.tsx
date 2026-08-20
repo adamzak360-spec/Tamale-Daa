@@ -30,10 +30,15 @@ export default function ProductCard({ product, showStock = true, wishlistIds, on
     if (saving || !user) return
     setSaving(true)
     try {
-      const ok = isInWishlist
-        ? await removeFromWishlist(user.id, product.id)
-        : await addToWishlist(user.id, product.id)
-      if (ok) onWishlistChange?.(product.id, !isInWishlist)
+      const added = !isInWishlist
+      const ok = added
+        ? await addToWishlist(user.id, product.id)
+        : await removeFromWishlist(user.id, product.id)
+      if (ok) {
+        onWishlistChange?.(product.id, added)
+        // Instantly update the header badge number
+        window.dispatchEvent(new CustomEvent('wishlist-changed', { detail: { added } }))
+      }
     } finally {
       setSaving(false)
     }

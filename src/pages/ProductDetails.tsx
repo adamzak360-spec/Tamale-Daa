@@ -114,12 +114,14 @@ export default function ProductDetails() {
     if (!productId) return
     setWishlistLoading(true)
     try {
-      if (isInWishlist) {
-        const ok = await removeFromWishlist(user.id, productId)
-        if (ok) setIsInWishlist(false)
-      } else {
-        const ok = await addToWishlist(user.id, productId)
-        if (ok) setIsInWishlist(true)
+      const added = !isInWishlist
+      const ok = added
+        ? await addToWishlist(user.id, productId)
+        : await removeFromWishlist(user.id, productId)
+      if (ok) {
+        setIsInWishlist(added)
+        // Instantly update the header badge number
+        window.dispatchEvent(new CustomEvent('wishlist-changed', { detail: { added } }))
       }
     } finally {
       setWishlistLoading(false)

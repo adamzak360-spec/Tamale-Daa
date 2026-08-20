@@ -45,7 +45,11 @@ export default function CustomerWishlist() {
   const handleRemove = async (productId: string) => {
     if (!user) return
     const ok = await removeFromWishlist(user.id, productId)
-    if (ok) setProducts(prev => prev.filter(p => p.id !== productId))
+    if (ok) {
+      setProducts(prev => prev.filter(p => p.id !== productId))
+      // Instantly update the header badge number
+      window.dispatchEvent(new CustomEvent('wishlist-changed', { detail: { added: false } }))
+    }
   }
 
   return (
