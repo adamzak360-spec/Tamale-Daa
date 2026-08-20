@@ -1,41 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
-import { ChevronLeft, ChevronRight, ArrowRight, Zap, TrendingUp, Star, Package, Award, Heart } from 'lucide-react'
+import { Search, X, ArrowRight, Package } from 'lucide-react'
 import './Home.css'
-
-const HERO_BANNERS = [
-  {
-    id: 1,
-    title: 'Premium Collection 2026',
-    subtitle: 'Experience Excellence',
-    description: 'Discover our curated selection of high-end products designed for the modern lifestyle.',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1200&fm=webp',
-    cta: 'Shop Now',
-    color: '#000000'
-  },
-  {
-    id: 2,
-    title: 'Flash Deals',
-    subtitle: 'Limited Time Only',
-    description: 'Up to 50% off on selected electronics and home appliances. Grab them before they are gone!',
-    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1200&fm=webp',
-    cta: 'View Deals',
-    color: '#2563eb'
-  },
-  {
-    id: 3,
-    title: 'Fresh Arrivals',
-    subtitle: 'New This Week',
-    description: 'Check out our latest arrivals in fashion and accessories. Stay ahead of the trend.',
-    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200&fm=webp',
-    cta: 'Explore New',
-    color: '#059669'
-  }
-]
 
 const CATEGORY_ICONS: Record<string, string> = {
   'New Cars Collection': '🚗',
@@ -66,17 +36,25 @@ function getCategoryIcon(name: string): string {
   return '🌟'
 }
 
+// Matches the search logic on the Products page (name/description/category, plus brand)
+function matchesSearch(product: Product, term: string): boolean {
+  const lower = term.toLowerCase()
+  return (
+    product.name.toLowerCase().includes(lower) ||
+    product.description.toLowerCase().includes(lower) ||
+    product.category.toLowerCase().includes(lower) ||
+    (product.brand ?? '').toLowerCase().includes(lower)
+  )
+}
+
 export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [currentBanner, setCurrentBanner] = useState(0)
-  
-  const scrollRefs = {
-    trending: useRef<HTMLDivElement>(null),
-    bestSellers: useRef<HTMLDivElement>(null),
-    newArrivals: useRef<HTMLDivElement>(null),
-    flashDeals: useRef<HTMLDivElement>(null)
-  } as const
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const searchRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const load = async () => {
@@ -92,28 +70,86 @@ export default function Home() {
     load()
   }, [])
 
-  // Auto-slide hero banner
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % HERO_BANNERS.length)
-    }, 5000)
-    return () => clearInterval(timer)
+    const saved = localStorage.getItem('recentSearches')
+    if (saved) {
+      setRecentSearches(JSON.parse(saved))
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const activeProducts = allProducts.filter(p => p.status === 'active')
-  
-  // Categorized products for horizontal sections
-  const trendingProducts = activeProducts.slice(0, 8)
-  const bestSellers = activeProducts.slice(4, 12)
-  const newArrivals = activeProducts.slice(0, 6)
-  const flashDeals = activeProducts.filter(p => p.price < 50).slice(0, 8)
 
-  const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
-    if (ref.current) {
-      const scrollAmount = direction === 'left' ? -400 : 400
-      ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
-    }
+  const clearSearch = () => {
+    setSearchTerm('')
+    setShowSuggestions(false)
   }
+
+  const goToSearchResults = () => {
+    const term = searchTerm.trim()
+    if (!term) return
+    setShowSuggestions(false)
+    // Reuse recent searches storage, same as the Products page
+    if (!recentSearches.includes(term)) {
+      const updated = [term, ...recentSearches.slice(0, 4)]
+      setRecentSearches(updated)
+      localStorage.setItem('recentSearches', JSON.stringify(updated))
+    }
+    navigate(`/products?search=${encodeURIComponent(term)}`)
+  }
+
+  const handleSuggestion = (value: string) => {
+    setSearchTerm(value)
+    setShowSuggestions(false)
+    navigate(`/products?search=${encodeURIComponent(value)}`)
+  }
+
+  // Search suggestions while typing on the homepage
+  const suggestions = (() => {
+    const term = searchTerm.trim().toLowerCase()
+    if (!term) return []
+    const results: { value: string; label: string; icon: string }[] = []
+    const seen = new Set<string>()
+    activeProducts
+      .filter(p => matchesSearch(p, term))
+      .slice(0, 4)
+      .forEach(p => {
+        if (!seen.has(p.name)) {
+          seen.add(p.name)
+          results.push({ value: p.name, label: p.name, icon: '📦' })
+        }
+      })
+    // Matching categories
+    const cats = new Set(
+      activeProducts
+        .filter(p => p.category.toLowerCase().includes(term))
+        .map(p => p.category)
+    )
+    cats.forEach(cat => results.push({ value: cat, label: `Browse ${cat}`, icon: '📁' }))
+    return results.slice(0, 6)
+  })()
+
+  // Real-time search results on homepage (up to 6 shown)
+  const liveResults = (() => {
+    const term = searchTerm.trim()
+    if (!term) return []
+    return activeProducts.filter(p => matchesSearch(p, term)).slice(0, 6)
+  })()
+
+  // Two presentation areas using real products
+  const featuredProducts = activeProducts.slice(0, 12)
+  const discoverProducts = activeProducts.length > 0
+    ? [...activeProducts.slice(0, 8), ...activeProducts.slice(8, 16)]
+    : []
 
   const categoryCounts: Record<string, number> = {}
   activeProducts.forEach(p => {
@@ -122,242 +158,236 @@ export default function Home() {
   const dynamicCategories = Object.entries(categoryCounts)
     .filter(([, count]) => count > 0)
     .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
     .map(([name, count]) => ({
       name,
       icon: getCategoryIcon(name),
       count,
     }))
 
-  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
-  const categoryDropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
-        setIsCategoryDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
   return (
     <div className="home-page">
-      {/* --- Hero Carousel --- */}
-      <section className="hero-carousel">
-        {HERO_BANNERS.map((banner, index) => (
-          <div 
-            key={banner.id} 
-            className={`hero-slide ${index === currentBanner ? 'active' : ''}`}
-            style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${banner.image})` }}
-          >
-            <div className="container hero-content">
-              <span className="hero-subtitle animate-up">{banner.subtitle}</span>
-              <h2 className="hero-title animate-up">{banner.title}</h2>
-              <p className="hero-description animate-up">{banner.description}</p>
-              <Link to="/products" className="hero-cta animate-up">
-                {banner.cta} <ArrowRight size={20} />
-              </Link>
-            </div>
-          </div>
-        ))}
-        <div className="carousel-dots">
-          {HERO_BANNERS.map((_, index) => (
-            <button 
-              key={index} 
-              className={`dot ${index === currentBanner ? 'active' : ''}`}
-              onClick={() => setCurrentBanner(index)}
-            />
-          ))}
-        </div>
-      </section>
-
       {/* --- Call To Order Banner --- */}
       <CallToOrderBanner />
 
-      {/* --- Featured Categories --- */}
-      <section className="section categories-section">
+      {/* --- Homepage Search Bar --- */}
+      <section className="section home-search-section">
         <div className="container">
-          <div className="category-dropdown-wrapper" ref={categoryDropdownRef}>
-            <button 
-              className={`category-dropdown-btn ${isCategoryDropdownOpen ? 'active' : ''}`}
-              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-            >
-              <span>Shop by Category</span>
-              <ChevronRight size={20} className={isCategoryDropdownOpen ? 'rotate-90' : ''} />
-            </button>
-            
-            {isCategoryDropdownOpen && (
-              <div className="category-dropdown-menu">
-                {dynamicCategories.map(category => (
-                  <Link
-                    key={category.name}
-                    to={`/products?category=${encodeURIComponent(category.name)}`}
-                    className="category-dropdown-item"
-                    onClick={() => setIsCategoryDropdownOpen(false)}
-                  >
-                    <span className="category-icon">{category.icon}</span>
-                    <span className="category-name">{category.name}</span>
-                    <span className="category-count">{category.count} items</span>
-                  </Link>
-                ))}
-                <Link 
-                  to="/products" 
-                  className="category-dropdown-item view-all-item"
-                  onClick={() => setIsCategoryDropdownOpen(false)}
+          <div className="home-search-wrapper" ref={searchRef}>
+            <div className="search-container">
+              <Search size={20} className="search-icon" aria-hidden="true" />
+              <input
+                type="search"
+                placeholder="Search products, brands, categories..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  setShowSuggestions(true)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') goToSearchResults()
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                className="search-input"
+                aria-label="Search products"
+              />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="clear-btn"
+                  type="button"
+                  aria-label="Clear search"
                 >
-                  <span className="category-icon">📂</span>
-                  <span className="category-name">View All Products</span>
-                  <ArrowRight size={16} />
+                  <X size={18} />
+                </button>
+              )}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="search-suggestions" role="listbox" aria-label="Search suggestions">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      className={`suggestion-item suggestion-${suggestion.icon === '📁' ? 'category' : 'product'}`}
+                      onClick={() => handleSuggestion(suggestion.value)}
+                      role="option"
+                      type="button"
+                    >
+                      <span className="suggestion-icon">{suggestion.icon}</span>
+                      <span className="suggestion-text">{suggestion.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- Category Row --- */}
+      <section className="section home-category-section">
+        <div className="container">
+          <div className="category-chip-row">
+            <Link to="/products" className="category-chip">
+              <span className="chip-icon">🛍️</span>
+              <span>All Products</span>
+            </Link>
+            {dynamicCategories.map(category => (
+              <Link
+                key={category.name}
+                to={`/products?category=${encodeURIComponent(category.name)}`}
+                className="category-chip"
+              >
+                <span className="chip-icon">{category.icon}</span>
+                <span>{category.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* --- Live Search Results (when typing) --- */}
+      {searchTerm.trim() && (
+        <section className="section product-horizontal-section">
+          <div className="container">
+            <div className="section-header">
+              <div className="section-title-wrapper">
+                <Search size={20} />
+                <h3 className="section-title">
+                  {liveResults.length > 0
+                    ? `Results for "${searchTerm.trim()}"`
+                    : `No products found for "${searchTerm.trim()}"`}
+                </h3>
+              </div>
+              {liveResults.length > 0 && (
+                <Link to={`/products?search=${encodeURIComponent(searchTerm.trim())}`} className="view-all-link">
+                  View all <ArrowRight size={16} />
                 </Link>
+              )}
+            </div>
+            {liveResults.length === 0 ? (
+              <div className="empty-state">
+                <Package size={40} />
+                <h4>No products match your search</h4>
+                <p>Try different keywords, or browse all products instead.</p>
+              </div>
+            ) : (
+              <div className="featured-grid">
+                {liveResults.map(product => (
+                  <div key={product.id} className="grid-product-wrapper">
+                    <ProductCard product={product} />
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* --- Horizontal Product Sections --- */}
-      
-      {/* Trending */}
-      <ProductSection 
-        title="Trending Now" 
-        icon={<TrendingUp size={20} />} 
-        products={trendingProducts} 
-        scrollRef={scrollRefs.trending}
-        onScroll={(dir) => scroll(scrollRefs.trending, dir)}
-        isLoading={isLoading}
-      />
-
-      {/* Flash Deals */}
-      <ProductSection 
-        title="Flash Deals" 
-        icon={<Zap size={20} color="#ef4444" />} 
-        products={flashDeals} 
-        scrollRef={scrollRefs.flashDeals}
-        onScroll={(dir) => scroll(scrollRefs.flashDeals, dir)}
-        isLoading={isLoading}
-        className="flash-deals-section"
-      />
-
-      {/* Best Sellers */}
-      <ProductSection 
-        title="Best Sellers" 
-        icon={<Award size={20} color="#f59e0b" />} 
-        products={bestSellers} 
-        scrollRef={scrollRefs.bestSellers}
-        onScroll={(dir) => scroll(scrollRefs.bestSellers, dir)}
-        isLoading={isLoading}
-      />
-
-      {/* New Arrivals */}
-      <ProductSection 
-        title="New Arrivals" 
-        icon={<Package size={20} />} 
-        products={newArrivals} 
-        scrollRef={scrollRefs.newArrivals}
-        onScroll={(dir) => scroll(scrollRefs.newArrivals, dir)}
-        isLoading={isLoading}
-      />
-
-      {/* --- Why Tamale Daa --- */}
-      <section className="section why-tamale-daa">
-        <div className="container">
-          <div className="why-grid">
-            <div className="why-card">
-              <div className="why-icon"><TrendingUp /></div>
-              <h4>Premium Quality</h4>
-              <p>Handpicked products from trusted suppliers worldwide.</p>
+      {/* --- Section 1: Featured Products (normal responsive grid) --- */}
+      {!searchTerm.trim() && (
+        <section className="section product-horizontal-section">
+          <div className="container">
+            <div className="section-header">
+              <div className="section-title-wrapper">
+                <Package size={20} />
+                <h3 className="section-title">Featured Products</h3>
+              </div>
+              <Link to="/products" className="view-all-link">
+                View All <ArrowRight size={16} />
+              </Link>
             </div>
-            <div className="why-card">
-              <div className="why-icon"><Zap /></div>
-              <h4>Express Delivery</h4>
-              <p>Get your orders delivered within 24 hours across the city.</p>
-            </div>
-            <div className="why-card">
-              <div className="why-icon"><Star /></div>
-              <h4>Exceptional Service</h4>
-              <p>Our support team is available 24/7 to assist you.</p>
-            </div>
-            <div className="why-card">
-              <div className="why-icon"><Heart /></div>
-              <h4>Customer First</h4>
-              <p>Easy returns and secure payments for peace of mind.</p>
+
+            {isLoading ? (
+              <div className="featured-grid">
+                {[...Array(9)].map((_, i) => (
+                  <div key={i} className="product-card-skeleton grid" />
+                ))}
+              </div>
+            ) : featuredProducts.length === 0 ? (
+              <div className="empty-state">
+                <Package size={40} />
+                <h4>Products will appear here soon</h4>
+                <p>Our marketplace is being prepared with great products. Check back shortly to start shopping.</p>
+              </div>
+            ) : (
+              <div className="featured-grid">
+                {featuredProducts.map(product => (
+                  <div key={product.id} className="grid-product-wrapper">
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* --- Section 2: Discover More (smooth moving product row) --- */}
+      {!searchTerm.trim() && (
+        <section className="section discover-section" aria-label="Discover more products">
+          <div className="container">
+            <div className="section-header">
+              <div className="section-title-wrapper">
+                <ArrowRight size={20} />
+                <h3 className="section-title">Discover More</h3>
+              </div>
+              <Link to="/products" className="view-all-link">
+                Browse All <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+          <div
+            className={`marquee-track ${discoverProducts.length < 8 ? 'few-products' : ''}`}
+            aria-label="Scrolling product carousel"
+          >
+            <div className="marquee-content">
+              {/* Two copies for a seamless continuous loop */}
+              {isLoading
+                ? [...Array(10)].map((_, i) => <div key={`sk-${i}`} className="marquee-skeleton" />)
+                : discoverProducts.length > 0
+                  ? [0, 1].map(copy => (
+                      <div className="marquee-copy" key={copy} aria-hidden={copy === 1}>
+                        {discoverProducts.map(product => (
+                          <Link
+                            key={`${product.id}-${copy}`}
+                            to={`/product/${product.id}`}
+                            className="marquee-card"
+                            tabIndex={copy === 1 ? -1 : 0}
+                          >
+                            <div className="marquee-card-image">
+                              {product.image_url ? (
+                                <img src={product.image_url} alt={product.name} loading="lazy" />
+                              ) : (
+                                <span className="marquee-no-image">No image</span>
+                              )}
+                            </div>
+                            <div className="marquee-card-info">
+                              <span className="marquee-card-name">{product.name}</span>
+                              <span className="marquee-card-price">{product.price != null ? `${product.price.toLocaleString()}` : ''}</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ))
+                  : null}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* --- Call to Order Section --- */}
-      <section className="section call-to-order-section">
-        <div className="container">
-          <div className="call-to-order-card">
-            <h3>Need Help Placing an Order?</h3>
-            <p>Our customer support team is ready to assist you</p>
-            <a href="tel:+233538557781" className="call-to-order-link">
-              📞 Call us: +233 53 855 7781
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* --- Newsletter --- */}
-      <section className="section newsletter-section">
-        <div className="container">
-          <div className="newsletter-card">
-            <div className="newsletter-content">
-              <h3>Join the Tamale Daa Community</h3>
-              <p>Subscribe to receive updates, access to exclusive deals, and more.</p>
-              <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
-                <input type="email" placeholder="Enter your email" required />
-                <button type="submit">Subscribe</button>
-              </form>
+      {!searchTerm.trim() && (
+        <section className="section call-to-order-section">
+          <div className="container">
+            <div className="call-to-order-card">
+              <h3>Need Help Placing an Order?</h3>
+              <p>Our customer support team is ready to assist you</p>
+              <a href="tel:+233538557781" className="call-to-order-link">
+                📞 Call us: +233 53 855 7781
+              </a>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
-  )
-}
-
-interface ProductSectionProps {
-  title: string
-  icon: React.ReactNode
-  products: Product[]
-  scrollRef: React.RefObject<HTMLDivElement | null>
-  onScroll: (dir: 'left' | 'right') => void
-  isLoading: boolean
-  className?: string
-}
-
-function ProductSection({ title, icon, products, scrollRef, onScroll, isLoading, className = '' }: ProductSectionProps) {
-  if (!isLoading && products.length === 0) return null
-
-  return (
-    <section className={`section product-horizontal-section ${className}`}>
-      <div className="container">
-        <div className="section-header">
-          <div className="section-title-wrapper">
-            {icon}
-            <h3 className="section-title">{title}</h3>
-          </div>
-          <div className="scroll-controls">
-            <button className="scroll-btn" onClick={() => onScroll('left')}><ChevronLeft size={20} /></button>
-            <button className="scroll-btn" onClick={() => onScroll('right')}><ChevronRight size={20} /></button>
-          </div>
-        </div>
-        
-        <div className="horizontal-scroll-container" ref={scrollRef}>
-          {isLoading ? (
-            [...Array(6)].map((_, i) => <div key={i} className="product-card-skeleton horizontal" />)
-          ) : (
-            products.map(product => (
-              <div key={product.id} className="horizontal-product-wrapper">
-                <ProductCard product={product} />
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </section>
   )
 }

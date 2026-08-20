@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
 import ProductCard from '../components/ProductCard'
@@ -16,13 +17,16 @@ export default function Products() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [searchParams] = useSearchParams()
+  // Load initial filters from URL query params (deep links from homepage search/categories)
+  const initialSearch = searchParams.get('search') || ''
+  const initialCategory = searchParams.get('category') || ''
+  const [searchTerm, setSearchTerm] = useState(initialSearch)
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory)
   const [showAll, setShowAll] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
-
   // Load recent searches from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches')
