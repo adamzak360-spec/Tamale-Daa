@@ -80,41 +80,59 @@ export default function SellerRegistration() {
         value={form[name]}
         onChange={e => set(name, e.target.value)}
         placeholder={placeholder}
-        style={{ padding: 10, border: '1px solid #d1d5db', borderRadius: 8, fontSize: '0.9rem' }}
+        style={{ padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', minWidth: 0 }}
       />
     </div>
   )
 
   return (
     <div className="seller-register-page" style={{ maxWidth: 640, margin: '0 auto', padding: '40px 20px 60px' }}>
-      <h2 style={{ fontSize: '1.8rem', marginBottom: 4 }}>Become a Seller on Tamale Daa</h2>
-      <p style={{ color: '#6b7280', marginBottom: 24 }}>
+      <h2 style={{ fontSize: '1.6rem', lineHeight: 1.25, marginBottom: 8, wordBreak: 'normal' }}>Become a Seller</h2>
+      <p style={{ color: '#6b7280', marginBottom: 24, fontSize: '0.95rem', lineHeight: 1.5 }}>
         Open your own store and reach customers across the marketplace. Submit your details below — the admin reviews every application and notifies you once approved.
       </p>
 
       {!user && (
-        <div className="notification error" style={{ marginBottom: 16 }}>
-          <span>You must be logged in to apply. </span>
-          <Link to="/login" style={{ color: '#fff', fontWeight: 600 }}>Log in</Link>
-          <span> or </span>
-          <Link to="/register" style={{ color: '#fff', fontWeight: 600 }}>create an account</Link>
-          <span>, then return here.</span>
+        <div style={{
+          marginBottom: 16,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderLeft: '4px solid #ef4444',
+          borderRadius: 10,
+          padding: '12px 16px',
+          fontSize: '0.9rem',
+          color: '#b91c1c',
+          boxShadow: '0 2px 8px rgba(239,68,68,0.08)',
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 220px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            You must be logged in to apply.
+          </span>
+          <span style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <Link to="/login" style={{ background: '#ef4444', color: '#fff', fontWeight: 600, borderRadius: 8, padding: '6px 14px', fontSize: '0.85rem', textDecoration: 'none' }}>Log in</Link>
+            <Link to="/register" style={{ background: '#fff', color: '#b91c1c', border: '1px solid #fecaca', fontWeight: 600, borderRadius: 8, padding: '6px 14px', fontSize: '0.85rem', textDecoration: 'none' }}>Create account</Link>
+          </span>
         </div>
       )}
 
       {done ? (
-        <div className="notification success" style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 16, background: '#f0fdf4', border: '1px solid #bbf7d0', borderLeft: '4px solid #16a34a', borderRadius: 10, padding: '12px 16px', fontSize: '0.9rem', color: '#15803d' }}>
           <span>{done}</span>
         </div>
       ) : null}
       {error && (
-        <div className="notification error" style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', background: '#fef2f2', border: '1px solid #fecaca', borderLeft: '4px solid #ef4444', borderRadius: 10, padding: '12px 16px', fontSize: '0.9rem', color: '#b91c1c' }}>
           <span>{error}</span>
-          <button onClick={() => setError('')}>&times;</button>
+          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: '#b91c1c', fontSize: '1.2rem', cursor: 'pointer', lineHeight: 1, padding: '0 4px' }}>&times;</button>
         </div>
       )}
 
-      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, border: '1px solid #e5e7eb', borderRadius: 12, padding: 20, background: '#fff' }}>
+      <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, border: '1px solid #e5e7eb', borderRadius: 12, padding: '20px 18px', background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
         {field('Business / Store Name', 'business_name', true, 'e.g. Adama\'s Boutique')}
         {field('Category', 'category', false, 'e.g. Fashion, Electronics, Home & Kitchen')}
         {field('Your Full Name', 'owner_name', true)}
@@ -139,9 +157,9 @@ export default function SellerRegistration() {
         </div>
         {field('Payout Method', 'payment_method', false, 'e.g. Mobile Money, Bank Transfer')}
         {field('Payout Reference', 'payment_reference', false, 'e.g. Momo number or account number')}
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center', paddingTop: 8 }}>
-          <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? 'Submitting...' : 'Submit Application'}</button>
-          <Link to="/stores" style={{ color: '#2563eb', fontSize: '0.9rem' }}>Browse the Stores Directory</Link>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', paddingTop: 8 }}>
+          <button type="submit" className="btn-primary" disabled={submitting} style={{ minWidth: 180 }}>{submitting ? 'Submitting...' : 'Submit Application'}</button>
+          <Link to="/stores" style={{ color: '#2563eb', fontSize: '0.9rem', textDecoration: 'none' }}>Browse the Stores Directory</Link>
         </div>
       </form>
     </div>

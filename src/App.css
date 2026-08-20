@@ -379,3 +379,8 @@
   box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
   transform: translateY(-2px);
 }
+
+/* Global text overflow safety (keeps long names/buttons inside cards & boxes) */
+h1, h2, h3, h4, h5, h6, p, span, label, li, td {
+  overflow-wrap: anywhere;
+}
