@@ -55,6 +55,9 @@ export default function AdminProducts({ products, loading, searchTerm: externalS
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
+        {onExport && (
+          <button onClick={onExport} className="btn-export" title="Export products as CSV">Export Products</button>
+        )}
         <button onClick={onAddProduct} className="btn-primary">
           + Add Product
         </button>
