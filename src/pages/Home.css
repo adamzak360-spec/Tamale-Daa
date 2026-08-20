@@ -135,6 +135,9 @@
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-sm);
   }
+  .product-card-skeleton.grid {
+    height: 240px;
+  }
 }
 
 /* Product card skeleton for grid layout */
