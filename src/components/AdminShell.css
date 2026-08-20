@@ -1,0 +1,361 @@
+/* AdminShell — shared sidebar layout for admin and seller dashboards */
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.admin-shell-sidebar {
+  width: 248px;
+  background: #0f2d51;
+  color: #e8edf3;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 60;
+  transition: width 0.2s ease;
+  overflow-y: auto;
+}
+
+.admin-shell-sidebar.collapsed {
+  width: 64px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand-text {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.collapsed .sidebar-brand-text {
+  display: none;
+}
+
+.sidebar-collapse-btn {
+  background: none;
+  border: none;
+  color: #c8d4e2;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.desktop-only { display: flex; }
+.mobile-only { display: none; }
+
+.sidebar-nav {
+  flex: 1;
+  padding: 8px 8px;
+}
+
+.sidebar-section {
+  margin-bottom: 10px;
+}
+
+.sidebar-section-title {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8fa3bd;
+  padding: 8px 10px 4px;
+  white-space: nowrap;
+}
+
+.collapsed .sidebar-section-title {
+  display: none;
+}
+
+.sidebar-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #d9e2ee;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-item.active {
+  background: #1e88e5;
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar-item.child {
+  padding-left: 26px;
+  font-size: 0.83rem;
+  color: #b9c8db;
+}
+
+.sidebar-item.child.active {
+  background: rgba(30, 136, 229, 0.35);
+  color: #fff;
+}
+
+.collapsed .sidebar-item-label {
+  display: none;
+}
+
+.collapsed .sidebar-badge {
+  position: absolute;
+}
+
+.sidebar-item {
+  position: relative;
+}
+
+.sidebar-badge {
+  background: #e63946;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 8px;
+}
+
+.sidebar-item.signout {
+  color: #f3a7b0;
+}
+
+/* Main area */
+.admin-shell-main {
+  flex: 1;
+  margin-left: 248px;
+  transition: margin-left 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.collapsed ~ .admin-shell-main,
+.admin-shell:has(.admin-shell-sidebar.collapsed) .admin-shell-main {
+  margin-left: 64px;
+}
+
+.shell-topbar {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #0f2d51;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.shell-title {
+  font-size: 1.05rem;
+  color: #0f2d51;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shell-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notif-wrap {
+  position: relative;
+}
+
+.notif-bell {
+  position: relative;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  color: #374151;
+  display: flex;
+  align-items: center;
+}
+
+.notif-bell:hover {
+  background: #f3f4f6;
+}
+
+.notif-bell.has-unread {
+  color: #e63946;
+}
+
+.notif-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e63946;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(360px, 92vw);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 45, 81, 0.18);
+  max-height: 440px;
+  overflow-y: auto;
+  z-index: 80;
+}
+
+.notif-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+}
+
+.notif-unread-hint {
+  color: #e63946;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.notif-empty {
+  padding: 24px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.notif-item {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f3f5;
+  cursor: pointer;
+}
+
+.notif-item:hover {
+  background: #f6f9fc;
+}
+
+.notif-item.unread {
+  background: #eef5fd;
+}
+
+.notif-item-title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #111827;
+}
+
+.notif-item-msg {
+  display: block;
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notif-item-time {
+  display: block;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.shell-body {
+  padding: 20px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .admin-shell-sidebar {
+    transform: translateX(-100%);
+    width: 260px !important;
+  }
+  .admin-shell-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  .admin-shell-main {
+    margin-left: 0 !important;
+  }
+  .mobile-menu-btn { display: flex; }
+  .desktop-only { display: none; }
+  .mobile-only { display: flex; }
+  .sidebar-item-label { display: inline !important; }
+  .sidebar-section-title { display: block !important; }
+  .shell-body { padding: 14px; }
+}
+
+@media (max-width: 520px) {
+  .shell-body { padding: 10px; }
+  .shell-title { font-size: 0.92rem; }
+}
