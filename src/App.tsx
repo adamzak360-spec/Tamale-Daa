@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from './context/AuthContext'
+import { getWishlistProductIds } from './services/wishlistService'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { LogoutButton } from './components/Logout'
 import { useCart } from './context/CartContext'
@@ -80,6 +81,30 @@ function AppShell() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [wishlistCount, setWishlistCount] = useState(0)
+
+  // Header wishlist badge: count of saved products (logged-in customers only)
+  useEffect(() => {
+    let cancelled = false
+    const loadCount = async () => {
+      if (!user) return
+      try {
+        const ids = await getWishlistProductIds(user.id)
+        if (!cancelled) setWishlistCount(ids.length)
+      } catch (e) {
+        console.error('wishlist badge fetch failed', e)
+      }
+    }
+    if (user) {
+      loadCount()
+      // Refresh periodically so the badge stays in sync after saves/removes
+      const timer = setInterval(loadCount, 15000)
+      return () => { cancelled = true; clearInterval(timer) }
+    } else {
+      if (!cancelled) setWishlistCount(0)
+    }
+    return () => { cancelled = true }
+  }, [user])
 
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isCustomerRoute = location.pathname.startsWith('/customer')
@@ -140,8 +165,9 @@ function AppShell() {
             <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title="Account">
               <User size={22} />
             </Link>
-            <Link to={user ? "/customer/wishlist" : "/login"} className="nav-icon-link" title="Wishlist">
+            <Link to={user ? "/customer/wishlist" : "/login"} className="nav-icon-link nav-icon-link-badge" title="Wishlist">
               <Heart size={22} />
+              {wishlistCount > 0 && <span className="wishlist-badge">{wishlistCount}</span>}
             </Link>
 	            <NotificationBell />
             <button className="cart-btn" onClick={() => setIsCartOpen(true)}>
