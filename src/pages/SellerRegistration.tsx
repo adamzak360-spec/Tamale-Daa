@@ -58,7 +58,7 @@ export default function SellerRegistration() {
         payment_reference: form.payment_reference.trim() || null,
         status: 'pending',
       })
-      if (!existing) throw new Error('Could not submit application.')
+      if (!existing) throw new Error('The application could not be saved. Please make sure you are logged in, then try again. If it still fails, contact support.')
 
       // Set metadata so the app can recognize the user as a seller
       await (supabase as NonNullable<typeof supabase>).auth.updateUser({ data: { seller_status: 'pending', business_name: form.business_name.trim() } })

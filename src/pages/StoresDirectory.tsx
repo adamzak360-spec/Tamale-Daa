@@ -18,7 +18,28 @@ export default function StoresDirectory() {
           <h2 style={{ fontSize: '1.8rem', marginBottom: 4 }}>Stores Directory</h2>
           <p style={{ color: '#6b7280' }}>Every registered seller on Tamale Daa.</p>
         </div>
-        <Link to="/seller-register" className="btn-primary">Become a Seller</Link>
+        <Link
+          to="/seller-register"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'linear-gradient(135deg,#1e3a8a,#2563eb)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 10,
+            padding: '13px 24px',
+            fontSize: '0.95rem',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            textDecoration: 'none',
+            boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
+            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Become a Seller
+        </Link>
       </div>
 
       {loading ? (
