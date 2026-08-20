@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { getAllProducts } from '../services/productService'
 import type { Product } from '../types'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import CallToOrderBanner from '../components/CallToOrderBanner'
-import { Search, X, ArrowRight, Package } from 'lucide-react'
+import { Search, X, ArrowRight, Package, ChevronDown, ChevronUp } from 'lucide-react'
 import './Home.css'
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -52,6 +52,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [searchParams] = useSearchParams()
+  const [showCategories, setShowCategories] = useState(searchParams.get('categories') === 'open')
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -222,27 +224,48 @@ export default function Home() {
         </div>
       </section>
 
-      {/* --- Category Row --- */}
-      <section className="section home-category-section">
-        <div className="container">
-          <div className="category-chip-row">
-            <Link to="/products" className="category-chip">
-              <span className="chip-icon">🛍️</span>
-              <span>All Products</span>
-            </Link>
-            {dynamicCategories.map(category => (
-              <Link
-                key={category.name}
-                to={`/products?category=${encodeURIComponent(category.name)}`}
-                className="category-chip"
+      {/* --- Category Dropdown (hidden until opened) --- */}
+      {dynamicCategories.length > 0 && (
+        <section className="section home-category-section">
+          <div className="container">
+            <div className="category-dropdown-wrap">
+              <button
+                type="button"
+                className={`category-dropdown-trigger ${showCategories ? 'open' : ''}`}
+                onClick={() => setShowCategories(!showCategories)}
+                aria-expanded={showCategories}
               >
-                <span className="chip-icon">{category.icon}</span>
-                <span>{category.name}</span>
-              </Link>
-            ))}
+                <span className="dropdown-trigger-icon">🛍️</span>
+                <span>Shop by Category</span>
+                {showCategories ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              </button>
+              {showCategories && (
+                <div className="category-dropdown">
+                  <Link
+                    to="/products"
+                    className="category-dropdown-item"
+                    onClick={() => setShowCategories(false)}
+                  >
+                    <span className="dropdown-icon">🛍️</span>
+                    <span>All Products</span>
+                  </Link>
+                  {dynamicCategories.map(category => (
+                    <Link
+                      key={category.name}
+                      to={`/products?category=${encodeURIComponent(category.name)}`}
+                      className="category-dropdown-item"
+                      onClick={() => setShowCategories(false)}
+                    >
+                      <span className="dropdown-icon">{category.icon}</span>
+                      <span>{category.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* --- Live Search Results (when typing) --- */}
       {searchTerm.trim() && (
@@ -297,7 +320,7 @@ export default function Home() {
             </div>
 
             {isLoading ? (
-              <div className="featured-grid">
+              <div className="featured-grid compact-grid">
                 {[...Array(9)].map((_, i) => (
                   <div key={i} className="product-card-skeleton grid" />
                 ))}
@@ -309,7 +332,7 @@ export default function Home() {
                 <p>Our marketplace is being prepared with great products. Check back shortly to start shopping.</p>
               </div>
             ) : (
-              <div className="featured-grid">
+              <div className="featured-grid compact-grid">
                 {featuredProducts.map(product => (
                   <div key={product.id} className="grid-product-wrapper">
                     <ProductCard product={product} />
