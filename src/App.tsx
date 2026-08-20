@@ -50,6 +50,8 @@ const CustomerProfile = lazy(() => import('./pages/CustomerProfile'))
 const CustomerOrders = lazy(() => import('./pages/CustomerOrders'))
 const OrderDetails = lazy(() => import('./pages/OrderDetails'))
 const CustomerSettings = lazy(() => import('./pages/CustomerSettings'))
+const CustomerWishlist = lazy(() => import('./pages/CustomerWishlist'))
+const Chat = lazy(() => import('./pages/Chat'))
 const ProductDetails = lazy(() => import('./pages/ProductDetails'))
 
 // Prefetch functions for near-instant transitions
@@ -138,9 +140,9 @@ function AppShell() {
             <Link to={user ? "/customer" : "/login"} className="nav-icon-link" title="Account">
               <User size={22} />
             </Link>
-            <button className="nav-icon-link" title="Wishlist">
+            <Link to={user ? "/customer/wishlist" : "/login"} className="nav-icon-link" title="Wishlist">
               <Heart size={22} />
-            </button>
+            </Link>
 	            <NotificationBell />
             <button className="cart-btn" onClick={() => setIsCartOpen(true)}>
               <ShoppingCart size={22} />
@@ -253,6 +255,22 @@ function AppShell() {
               element={
                 <ProtectedRoute>
                   <CustomerSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/customer/wishlist"
+              element={
+                <ProtectedRoute>
+                  <CustomerWishlist />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <Chat />
                 </ProtectedRoute>
               }
             />

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getProductById, getAllProducts, getProductVariants } from '../services/productService'
 import { getApprovedReviewsByProductId, submitReview, getProductRatingStats } from '../services/reviewService'
 import type { Product, Review, ProductVariant } from '../types'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { getWishlistProductIds, addToWishlist, removeFromWishlist } from '../services/wishlistService'
 import { formatCurrency } from '../utils/currency'
 import { ChevronLeft, ShoppingCart, Plus, Minus, Truck, ShieldCheck, Lock, Share2, Heart, ZoomIn, Phone } from 'lucide-react'
 import StockStatus from '../components/StockStatus'
@@ -33,11 +35,29 @@ export default function ProductDetails() {
   const [isSubmittingReview, setIsSubmittingReview] = useState(false)
   const [reviewSuccess, setReviewSuccess] = useState(false)
 
+  // Wishlist state
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [isInWishlist, setIsInWishlist] = useState(false)
+  const [wishlistLoading, setWishlistLoading] = useState(false)
+  // Share toast
+  const [shareToast, setShareToast] = useState('')
+
 
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [productId])
+
+  // Load wishlist status when logged in
+  useEffect(() => {
+    if (!user || !productId) return
+    let cancelled = false
+    getWishlistProductIds(user.id).then(ids => {
+      if (!cancelled) setIsInWishlist(ids.includes(productId))
+    })
+    return () => { cancelled = true }
+  }, [user, productId])
 
   useEffect(() => {
     const loadProductAndReviews = async () => {
@@ -85,6 +105,52 @@ export default function ProductDetails() {
 
     loadProductAndReviews()
   }, [productId])
+
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    if (!productId) return
+    setWishlistLoading(true)
+    try {
+      if (isInWishlist) {
+        const ok = await removeFromWishlist(user.id, productId)
+        if (ok) setIsInWishlist(false)
+      } else {
+        const ok = await addToWishlist(user.id, productId)
+        if (ok) setIsInWishlist(true)
+      }
+    } finally {
+      setWishlistLoading(false)
+    }
+  }
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href
+    const shareTitle = product ? `${product.name} — Tamale Daa` : 'Tamale Daa Product'
+    const shareText = product ? `Check out ${product.name} on Tamale Daa!` : ''
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl })
+        return
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return
+        // fall through to fallback
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setShareToast('Link copied to clipboard!')
+      setTimeout(() => setShareToast(''), 2500)
+    } catch {
+      // last fallback: WhatsApp share
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`,
+        '_blank'
+      )
+    }
+  }
 
   const handleAddToCart = () => {
     if (product?.has_sizes && !selectedSize) {
@@ -447,11 +513,20 @@ export default function ProductDetails() {
               <ShoppingCart size={20} />
               {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
             </button>
-            <button className="wishlist-btn">
-              <Heart size={20} />
+            <button className={`wishlist-btn ${isInWishlist ? 'active' : ''}`} onClick={handleWishlistToggle} disabled={wishlistLoading} title={isInWishlist ? 'Remove from Wishlist' : 'Save to Wishlist'}>
+              <Heart size={20} fill={isInWishlist ? 'currentColor' : 'none'} />
+              <span className="wishlist-label">{isInWishlist ? 'Saved' : 'Save'}</span>
             </button>
-            <button className="share-btn">
+            <button className="share-btn" onClick={handleShare} title="Share this product">
               <Share2 size={20} />
+              <span className="share-label">Share</span>
+            </button>
+          </div>
+          {shareToast && <div className="share-toast">{shareToast}</div>}
+          <div className="action-buttons secondary-actions">
+            <button className="chat-seller-btn" onClick={() => navigate(`/chat?productId=${productId}`)} title="Chat with Tamale Daa">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Chat with Seller
             </button>
           </div>
 
