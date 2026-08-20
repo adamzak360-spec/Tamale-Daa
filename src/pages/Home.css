@@ -6,7 +6,7 @@
    Homepage Search Bar (reuses Products page search styling)
    ============================================================ */
 .home-search-section {
-  padding: var(--space-xl) 0 var(--space-md);
+  padding: var(--space-lg) 0 var(--space-sm);
 }
 
 .home-search-wrapper {
@@ -25,7 +25,23 @@
    Category Dropdown (hidden until opened)
    ============================================================ */
 .home-category-section {
-  padding: var(--space-sm) 0 var(--space-lg);
+  padding: 0 0 var(--space-md);
+}
+
+@media (max-width: 480px) {
+  .home-category-section {
+    padding: 0 0 10px;
+  }
+  .category-dropdown-trigger {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+  }
+  .category-dropdown-trigger .dropdown-trigger-icon {
+    font-size: 0.95rem;
+  }
+  .home-search-section {
+    padding: var(--space-md) 0 0;
+  }
 }
 
 .category-dropdown-wrap {
@@ -203,7 +219,8 @@
 }
 
 .featured-grid.compact-grid .view-details-btn {
-  display: none;
+  font-size: 0.7rem;
+  padding: 5px 4px;
 }
 
 .grid-product-wrapper {
@@ -493,5 +510,15 @@
   }
   .product-card-skeleton.grid {
     height: 260px;
+  }
+}
+
+/* Pull sections closer together on mobile */
+@media (max-width: 480px) {
+  .home-page .section-header {
+    margin-bottom: var(--space-sm);
+  }
+  .home-page .product-horizontal-section {
+    padding-top: 0;
   }
 }
