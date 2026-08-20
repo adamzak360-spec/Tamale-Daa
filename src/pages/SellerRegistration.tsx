@@ -157,9 +157,59 @@ export default function SellerRegistration() {
         </div>
         {field('Payout Method', 'payment_method', false, 'e.g. Mobile Money, Bank Transfer')}
         {field('Payout Reference', 'payment_reference', false, 'e.g. Momo number or account number')}
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', paddingTop: 8 }}>
-          <button type="submit" className="btn-primary" disabled={submitting} style={{ minWidth: 180 }}>{submitting ? 'Submitting...' : 'Submit Application'}</button>
-          <Link to="/stores" style={{ color: '#2563eb', fontSize: '0.9rem', textDecoration: 'none' }}>Browse the Stores Directory</Link>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', paddingTop: 14 }}>
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              flex: '1 1 auto',
+              background: submitting ? '#93c5fd' : 'linear-gradient(135deg,#1e3a8a,#2563eb)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              padding: '14px 24px',
+              fontSize: '1rem',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              cursor: submitting ? 'wait' : 'pointer',
+              boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
+          >
+            {submitting ? (
+              <>
+                <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.35)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+                Submit Application
+              </>
+            )}
+          </button>
+          <Link
+            to="/stores"
+            style={{
+              flex: '1 1 200px',
+              textAlign: 'center',
+              background: '#f8fafc',
+              color: '#1e3a8a',
+              border: '1px solid #cbd5e1',
+              borderRadius: 10,
+              padding: '13px 18px',
+              fontSize: '0.92rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'background 0.15s ease',
+            }}
+          >
+            Browse the Stores Directory
+          </Link>
         </div>
       </form>
     </div>
