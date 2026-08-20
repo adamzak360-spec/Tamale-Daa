@@ -147,10 +147,10 @@ export default function Home() {
     return activeProducts.filter(p => matchesSearch(p, term)).slice(0, 6)
   })()
 
-  // Two presentation areas using real products
-  const featuredProducts = activeProducts.slice(0, 12)
+  // Section flow: Featured grid (first 6) -> horizontal scrolling row (next batch) -> More Products below the row
+  const featuredProducts = activeProducts.slice(0, 6)
   const discoverProducts = activeProducts.length > 0
-    ? [...activeProducts.slice(4, 8), ...activeProducts.slice(8, 12)]
+    ? [...activeProducts.slice(6, 8), ...activeProducts.slice(8, 10)]
     : []
 
   const categoryCounts: Record<string, number> = {}
@@ -397,8 +397,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* --- More Products Grid (batch after the scrolling row) --- */}
-      {!searchTerm.trim() && activeProducts.length > 12 && (
+      {/* --- More Products (products after the scrolling row, e.g. the Speaker) --- */}
+      {!searchTerm.trim() && activeProducts.length > 10 && (
         <section className="section product-horizontal-section">
           <div className="container">
             <div className="section-header">
@@ -411,7 +411,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="featured-grid compact-grid">
-              {activeProducts.slice(12, 24).map(product => (
+              {activeProducts.slice(10, 22).map(product => (
                 <div key={product.id} className="grid-product-wrapper">
                   <ProductCard product={product} />
                 </div>
