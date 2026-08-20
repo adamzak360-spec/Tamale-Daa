@@ -381,3 +381,31 @@ export async function getSellerProductIds(sellerId: string): Promise<string[]> {
     return (data || []).map((r: any) => r.product_id)
   }, [])
 }
+
+// ---------------- ADMIN CHAT OVERVIEW ----------------
+
+export interface ChatConversationRow {
+  id: string
+  customer_id: string
+  product_id: string | null
+  subject: string | null
+  last_message_at: string | null
+  created_at: string
+  [key: string]: any
+}
+
+export async function getConversations(): Promise<ChatConversationRow[]> {
+  return run(async (sb) => {
+    const { data, error } = await sb.from('chat_conversations').select('*').order('last_message_at', { ascending: false, nullsFirst: false })
+    if (error) throw error
+    return (data || []) as ChatConversationRow[]
+  }, [])
+}
+
+export async function getConversationMessages(conversationId: string): Promise<any[]> {
+  return run(async (sb) => {
+    const { data, error } = await sb.from('chat_messages').select('*').eq('conversation_id', conversationId).order('created_at', { ascending: true })
+    if (error) throw error
+    return data || []
+  }, [])
+}

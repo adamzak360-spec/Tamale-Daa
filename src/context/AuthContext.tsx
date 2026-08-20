@@ -13,6 +13,7 @@ interface AuthContextType {
   changePassword: (newPassword: string) => Promise<{ error: Error | null }>
   resetPasswordEmail: (email: string) => Promise<{ error: Error | null }>
   isAdmin: boolean
+  isSeller: boolean
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   changePassword: async () => ({ error: new Error('Supabase not configured') }),
   resetPasswordEmail: async () => ({ error: new Error('Supabase not configured') }),
   isAdmin: false,
+  isSeller: false,
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -35,11 +37,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isSeller, setIsSeller] = useState(false)
 
   const checkIsAdmin = (u: User | null) => {
     if (!u) return false
     // Current admin identification logic based on migration files
     return u.email === 'adamzak360@gmail.com'
+  }
+
+  const checkIsSeller = (u: User | null) => {
+    if (!u) return false
+    return (u.user_metadata?.seller_status || '') === 'approved'
   }
 
   useEffect(() => {
@@ -54,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = session?.user ?? null
       setUser(u)
       setIsAdmin(checkIsAdmin(u))
+      setIsSeller(checkIsSeller(u))
       setIsLoading(false)
     })
 
@@ -65,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const u = session?.user ?? null
       setUser(u)
       setIsAdmin(checkIsAdmin(u))
+      setIsSeller(checkIsSeller(u))
     })
 
     return () => {
@@ -157,7 +167,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateUserMetadata, 
       changePassword,
       resetPasswordEmail,
-      isAdmin
+      isAdmin,
+      isSeller
     }}>
       {children}
     </AuthContext.Provider>

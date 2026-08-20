@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import {
   getAllProducts,
@@ -44,8 +44,20 @@ const FinancialReports = lazy(() => import('../components/FinancialReports'))
 const SupplierManagement = lazy(() => import('../components/SupplierManagement'))
 const POS = lazy(() => import('./POS'))
 
+// SaaS marketplace pages (lazy loaded)
+const AdminSellers = lazy(() => import('./admin/AdminSellers'))
+const AdminPayouts = lazy(() => import('./admin/AdminPayouts'))
+const AdminNews = lazy(() => import('./admin/AdminNews'))
+const AdminPromotions = lazy(() => import('./admin/AdminPromotions'))
+const AdminAds = lazy(() => import('./admin/AdminAds'))
+const AdminVisibility = lazy(() => import('./admin/AdminVisibility'))
+const AdminManual = lazy(() => import('./admin/AdminManual'))
+const AdminSettings = lazy(() => import('./admin/AdminSettings'))
+const AdminNotifications = lazy(() => import('./admin/AdminNotifications'))
+const AdminAdvertise = lazy(() => import('./admin/AdminAdvertise'))
 
-type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'pos'
+
+type AdminView = 'dashboard' | 'products' | 'add' | 'edit' | 'orders' | 'inventory' | 'analytics' | 'reports' | 'suppliers' | 'reviews' | 'pos' | 'sellers' | 'payouts' | 'news' | 'promotions' | 'ads' | 'visibility' | 'manual' | 'marketplaceSettings' | 'storeSettings' | 'deliverySettings' | 'notifications' | 'advertise'
 
 export default function Admin() {
   const { user } = useAuth()
@@ -423,6 +435,16 @@ export default function Admin() {
         { key: 'products', label: 'Products', badge: products.length },
         { key: 'add', label: '+ Add Product' },
         { key: 'inventory', label: 'Inventory' },
+        { key: 'visibility', label: 'Product Visibility' },
+      ],
+    },
+    {
+      title: 'Sellers',
+      items: [
+        { key: 'sellers', label: 'Registered Sellers' },
+        { key: 'payouts', label: 'Seller Payouts' },
+        { key: 'suppliers', label: 'Suppliers' },
+        { key: 'promotions', label: 'Promote Products' },
       ],
     },
     {
@@ -434,9 +456,21 @@ export default function Admin() {
       ],
     },
     {
-      title: 'Operations',
+      title: 'Marketing',
       items: [
-        { key: 'suppliers', label: 'Suppliers' },
+        { key: 'news', label: 'News Updates' },
+        { key: 'ads', label: 'Ads / Advertising' },
+        { key: 'advertise', label: 'Advertise On Tamale Daa' },
+        { key: 'manual', label: 'Operations Manual' },
+      ],
+    },
+    {
+      title: 'Settings',
+      items: [
+        { key: 'marketplaceSettings', label: 'Marketplace Settings' },
+        { key: 'storeSettings', label: 'Store Settings' },
+        { key: 'deliverySettings', label: 'Delivery Settings' },
+        { key: 'notifications', label: 'Customer Chats' },
       ],
     },
   ]
@@ -548,10 +582,22 @@ export default function Admin() {
           />
         )}
         {view === 'inventory' && <InventoryManagement />}
+        {view === 'visibility' && <AdminVisibility products={products} />}
         {view === 'analytics' && <AdminAnalytics />}
         {view === 'reports' && <FinancialReports />}
         {view === 'suppliers' && <SupplierManagement />}
         {view === 'pos' && <POS />}
+        {view === 'sellers' && <AdminSellers />}
+        {view === 'payouts' && <AdminPayouts />}
+        {view === 'news' && <AdminNews />}
+        {view === 'promotions' && <AdminPromotions />}
+        {view === 'ads' && <AdminAds />}
+        {view === 'manual' && <AdminManual />}
+        {view === 'marketplaceSettings' && <AdminSettings />}
+        {view === 'storeSettings' && <AdminSettings />}
+        {view === 'deliverySettings' && <AdminSettings />}
+        {view === 'notifications' && <AdminNotifications />}
+        {view === 'advertise' && <AdminAdvertise />}
       </Suspense>
 
       {showOrderModal && selectedOrder && (
