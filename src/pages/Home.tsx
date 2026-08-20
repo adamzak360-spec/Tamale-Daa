@@ -173,7 +173,7 @@ export default function Home() {
       <CallToOrderBanner />
 
       {/* --- Homepage Search Bar --- */}
-      <section className="section home-search-section">
+      <section className="section home-search-section home-search-sticky">
         <div className="container">
           <div className="home-search-wrapper" ref={searchRef}>
             <div className="search-container">

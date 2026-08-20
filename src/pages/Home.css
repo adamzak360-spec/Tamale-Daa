@@ -9,6 +9,16 @@
   padding: var(--space-lg) 0 var(--space-sm);
 }
 
+/* Sticky search bar: stays visible while scrolling up or down */
+.home-search-section.home-search-sticky {
+  position: sticky;
+  top: var(--header-height, 64px);
+  z-index: 40;
+  background-color: var(--bg-color, #ffffff);
+  padding: var(--space-md) 0 var(--space-sm);
+  box-shadow: var(--shadow-sm);
+}
+
 .home-search-wrapper {
   width: 100%;
   display: flex;
