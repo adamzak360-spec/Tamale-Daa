@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getAllProducts } from '../services/productService'
+import { getWishlistProductIds } from '../services/wishlistService'
 import type { Product } from '../types'
+import { useAuth } from '../context/AuthContext'
 import ProductCard from '../components/ProductCard'
 import { Search, X } from 'lucide-react'
 import './Products.css'
@@ -27,6 +29,9 @@ export default function Products() {
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
+  const { user } = useAuth()
+  const [wishlistIds, setWishlistIds] = useState<string[]>([])
+  const [cardsNeedWishlist, setCardsNeedWishlist] = useState(false)
   // Load recent searches from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches')
@@ -34,6 +39,27 @@ export default function Products() {
       setRecentSearches(JSON.parse(saved))
     }
   }, [])
+
+  // Load saved-product ids for card heart states (logged-in only)
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const ids = user ? await getWishlistProductIds(user.id) : []
+        if (!cancelled) setWishlistIds(ids)
+      } catch (e) {
+        console.error('card wishlist load failed', e)
+      }
+    }
+    load()
+    const timer = setInterval(load, 20000)
+    return () => { cancelled = true; clearInterval(timer) }
+  }, [user, cardsNeedWishlist])
+
+  const handleCardWishlistChange = (productId: string, added: boolean) => {
+    setCardsNeedWishlist(true)
+    setWishlistIds(prev => added ? [...prev, productId] : prev.filter(id => id !== productId))
+  }
 
   // Track scroll for sticky search
   useEffect(() => {
@@ -275,7 +301,7 @@ export default function Products() {
             </div>
             <div className="products-grid">
               {filteredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} wishlistIds={wishlistIds} onWishlistChange={handleCardWishlistChange} />
               ))}
             </div>
             </>

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getAllProducts } from '../services/productService'
+import { getWishlistProductIds } from '../services/wishlistService'
+import { useAuth } from '../context/AuthContext'
 import type { Product } from '../types'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
@@ -51,12 +53,15 @@ export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [wishlistIds, setWishlistIds] = useState<string[]>([])
+  const [cardsNeedWishlist, setCardsNeedWishlist] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [searchParams] = useSearchParams()
   const [showCategories, setShowCategories] = useState(searchParams.get('categories') === 'open')
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   useEffect(() => {
     const load = async () => {
@@ -78,6 +83,29 @@ export default function Home() {
       setRecentSearches(JSON.parse(saved))
     }
   }, [])
+
+  // Refresh card wishlist states when any card toggles (header badge syncs itself)
+  const handleCardWishlistChange = (productId: string, added: boolean) => {
+    setCardsNeedWishlist(true)
+    setWishlistIds(prev => added ? [...prev, productId] : prev.filter(id => id !== productId))
+  }
+
+  // Load saved-product ids for card heart states (logged-in only)
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const ids = user ? await getWishlistProductIds(user.id) : []
+        if (!cancelled) setWishlistIds(ids)
+      } catch (e) {
+        console.error('card wishlist load failed', e)
+      }
+    }
+    load()
+    // cardsNeedWishlist triggers a fresh refetch after any save/remove via the header
+    const timer = setInterval(load, 20000)
+    return () => { cancelled = true; clearInterval(timer) }
+  }, [user, cardsNeedWishlist])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -296,7 +324,7 @@ export default function Home() {
               <div className="featured-grid">
                 {liveResults.map(product => (
                   <div key={product.id} className="grid-product-wrapper">
-                    <ProductCard product={product} />
+                    <ProductCard product={product} wishlistIds={wishlistIds} onWishlistChange={handleCardWishlistChange} />
                   </div>
                 ))}
               </div>
@@ -335,7 +363,7 @@ export default function Home() {
               <div className="featured-grid compact-grid">
                 {featuredProducts.map(product => (
                   <div key={product.id} className="grid-product-wrapper">
-                    <ProductCard product={product} />
+                    <ProductCard product={product} wishlistIds={wishlistIds} onWishlistChange={handleCardWishlistChange} />
                   </div>
                 ))}
               </div>
@@ -413,7 +441,7 @@ export default function Home() {
             <div className="featured-grid compact-grid">
               {activeProducts.slice(6, 18).map(product => (
                 <div key={product.id} className="grid-product-wrapper">
-                  <ProductCard product={product} />
+                  <ProductCard product={product} wishlistIds={wishlistIds} onWishlistChange={handleCardWishlistChange} />
                 </div>
               ))}
             </div>

@@ -1,16 +1,43 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { formatCurrency } from '../utils/currency'
+import { addToWishlist, removeFromWishlist } from '../services/wishlistService'
 import StockStatus from './StockStatus'
+import './ProductCard.css'
 
 interface ProductCardProps {
   product: Product
   showStock?: boolean
+  wishlistIds?: string[] // pass down to avoid per-card fetches
+  onWishlistChange?: (productId: string, added: boolean) => void
 }
 
-export default function ProductCard({ product, showStock = true }: ProductCardProps) {
+export default function ProductCard({ product, showStock = true, wishlistIds, onWishlistChange }: ProductCardProps) {
   const { addToCart } = useCart()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const isInWishlist = wishlistIds?.includes(product.id) ?? false
+  const [saving, setSaving] = useState(false)
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!user) { navigate('/login'); return }
+    if (saving || !user) return
+    setSaving(true)
+    try {
+      const ok = isInWishlist
+        ? await removeFromWishlist(user.id, product.id)
+        : await addToWishlist(user.id, product.id)
+      if (ok) onWishlistChange?.(product.id, !isInWishlist)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="product-card">
@@ -33,6 +60,17 @@ export default function ProductCard({ product, showStock = true }: ProductCardPr
               }}
             />
           ) : null}
+          {user && (
+            <button
+              className={`card-wishlist-btn ${isInWishlist ? 'active' : ''}`}
+              onClick={handleWishlistToggle}
+              disabled={saving}
+              title={isInWishlist ? 'Remove from Wishlist' : 'Save to Wishlist'}
+              aria-label={isInWishlist ? 'Remove from Wishlist' : 'Save to Wishlist'}
+            >
+              <Heart size={18} fill={isInWishlist ? 'currentColor' : 'none'} />
+            </button>
+          )}
           <div className={`product-image-placeholder ${!product.image_url ? 'visible' : ''}`}>
             <span>No image</span>
           </div>
