@@ -211,22 +211,19 @@
 }
 
 .featured-grid.compact-grid .product-actions {
-  flex-direction: row;
+  flex-direction: column;
   gap: 4px;
-  margin-top: 2px;
 }
 
 .featured-grid.compact-grid .btn {
-  padding: 5px 2px;
-  font-size: 0.68rem;
+  padding: 6px 8px;
+  font-size: 0.75rem;
   justify-content: center;
-  flex: 1;
-  white-space: nowrap;
 }
 
 .featured-grid.compact-grid .view-details-btn {
-  font-size: 0.65rem;
-  padding: 5px 2px;
+  font-size: 0.7rem;
+  padding: 5px 4px;
 }
 
 .grid-product-wrapper {
@@ -264,12 +261,12 @@
     aspect-ratio: 1 / 1;
   }
   .featured-grid.compact-grid .product-actions {
-    flex-direction: row;
+    flex-direction: column;
     gap: 4px;
   }
   .featured-grid.compact-grid .btn {
-    font-size: 0.65rem;
-    padding: 5px 2px;
+    font-size: 0.75rem;
+    padding: 6px 8px;
   }
   .featured-grid.compact-grid .stock-badge-wrapper {
     font-size: 0.6rem;
