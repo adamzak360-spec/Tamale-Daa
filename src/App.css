@@ -361,3 +361,21 @@
   color: var(--color-danger);
   margin: 1rem 0;
 }
+
+/* Stores directory card */
+.store-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.store-card:hover {
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+  transform: translateY(-2px);
+}

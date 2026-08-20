@@ -19,7 +19,8 @@ import {
   Settings,
   HelpCircle,
   Phone,
-  Info
+  Info,
+  Store
 } from 'lucide-react'
 import './App.css'
 import { lazy, Suspense, useLayoutEffect } from 'react'
@@ -54,6 +55,10 @@ const CustomerSettings = lazy(() => import('./pages/CustomerSettings'))
 const CustomerWishlist = lazy(() => import('./pages/CustomerWishlist'))
 const Chat = lazy(() => import('./pages/Chat'))
 const ProductDetails = lazy(() => import('./pages/ProductDetails'))
+const StoresDirectory = lazy(() => import('./pages/StoresDirectory'))
+const Storefront = lazy(() => import('./pages/Storefront'))
+const SellerRegistration = lazy(() => import('./pages/SellerRegistration'))
+const SellerDashboard = lazy(() => import('./pages/SellerDashboard'))
 
 // Prefetch functions for near-instant transitions
 const prefetchHome = () => import('./pages/Home')
@@ -75,7 +80,7 @@ function App() {
 }
 
 function AppShell() {
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, isSeller } = useAuth()
   const { cartCount, setIsCartOpen } = useCart()
   const location = useLocation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -118,7 +123,7 @@ function AppShell() {
     return () => { cancelled = true }
   }, [user])
 
-  const isAdminRoute = location.pathname.startsWith('/admin')
+  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/seller')
   const isCustomerRoute = location.pathname.startsWith('/customer')
 
   useEffect(() => {
@@ -209,11 +214,18 @@ function AppShell() {
                   <Settings size={20} /> Admin Dashboard
                 </Link>
               )}
+              {isSeller && (
+                <Link to="/seller" className="drawer-item" style={{ color: '#0d9488', fontWeight: 'bold' }}>
+                  <Store size={20} /> Seller Dashboard
+                </Link>
+              )}
               <Link to="/customer/orders" className="drawer-item"><Package size={20} /> Orders</Link>
               <Link to="/customer/wishlist" className="drawer-item"><Heart size={20} /> Wishlist</Link>
               <Link to="/customer" className="drawer-item"><User size={20} /> Account</Link>
             </>
           )}
+          <Link to="/stores" className="drawer-item"><Store size={20} /> Stores</Link>
+          <Link to="/seller-register" className="drawer-item"><Store size={20} /> Become a Seller</Link>
           <div className="drawer-divider"></div>
           <Link to="/about" className="drawer-item" onMouseEnter={prefetchAbout}><Info size={20} /> About</Link>
           <Link to="/contact" className="drawer-item" onMouseEnter={prefetchContact}><Phone size={20} /> Contact</Link>
@@ -304,8 +316,18 @@ function AppShell() {
                 </ProtectedRoute>
               }
             />
+                        <Route path="/stores" element={<StoresDirectory />} />
+            <Route path="/store/:slug" element={<Storefront />} />
+            <Route path="/seller-register" element={<SellerRegistration />} />
             <Route
-              path="/chat"
+              path="/seller"
+              element={
+                <ProtectedRoute sellerOnly>
+                  <SellerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/chat"
               element={
                 <ProtectedRoute>
                   <Chat />
