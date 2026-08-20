@@ -166,6 +166,8 @@
 .summary-item-name {
   font-weight: 500;
   color: #111827;
+  overflow-wrap: anywhere;
+  padding-right: 12px;
 }
 
 .summary-item-qty {
@@ -250,5 +252,21 @@
 @media (max-width: 480px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .checkout-container {
+    padding: 0 0.75rem;
+  }
+
+  .order-summary-card {
+    padding: 1.1rem;
+  }
+
+  .checkout-help-section {
+    padding: 1.25rem 1rem;
+  }
+
+  .checkout-call-btn {
+    display: block;
   }
 }

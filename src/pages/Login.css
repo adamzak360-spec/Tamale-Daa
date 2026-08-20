@@ -182,3 +182,24 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Mobile */
+@media (max-width: 480px) {
+  .login-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .login-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .login-header h2 {
+    font-size: 1.5rem;
+    line-height: 1.25;
+    word-break: normal;
+  }
+
+  .login-header {
+    margin-bottom: 1.25rem;
+  }
+}
