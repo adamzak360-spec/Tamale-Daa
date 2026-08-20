@@ -179,20 +179,23 @@
 }
 
 .featured-grid.compact-grid .product-card {
-  padding: var(--space-xs);
+  padding: 4px;
+  overflow: hidden;
 }
 
 .featured-grid.compact-grid .product-image-container {
   aspect-ratio: 4 / 3;
+  min-height: 0;
 }
 
 .featured-grid.compact-grid .product-info {
-  padding: 6px 2px;
+  padding: 4px 2px 2px;
   gap: 2px;
 }
 
 .featured-grid.compact-grid .product-name {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -208,19 +211,22 @@
 }
 
 .featured-grid.compact-grid .product-actions {
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
+  margin-top: 2px;
 }
 
 .featured-grid.compact-grid .btn {
-  padding: 6px 8px;
-  font-size: 0.75rem;
+  padding: 5px 2px;
+  font-size: 0.68rem;
   justify-content: center;
+  flex: 1;
+  white-space: nowrap;
 }
 
 .featured-grid.compact-grid .view-details-btn {
-  font-size: 0.7rem;
-  padding: 5px 4px;
+  font-size: 0.65rem;
+  padding: 5px 2px;
 }
 
 .grid-product-wrapper {
@@ -257,12 +263,16 @@
   .featured-grid.compact-grid .product-image-container {
     aspect-ratio: 1 / 1;
   }
+  .featured-grid.compact-grid .product-actions {
+    flex-direction: row;
+    gap: 4px;
+  }
   .featured-grid.compact-grid .btn {
-    font-size: 0.7rem;
-    padding: 5px 4px;
+    font-size: 0.65rem;
+    padding: 5px 2px;
   }
   .featured-grid.compact-grid .stock-badge-wrapper {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
 }
 
