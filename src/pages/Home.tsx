@@ -397,6 +397,30 @@ export default function Home() {
         </section>
       )}
 
+      {/* --- More Products Grid (batch after the scrolling row) --- */}
+      {!searchTerm.trim() && activeProducts.length > 16 && (
+        <section className="section product-horizontal-section">
+          <div className="container">
+            <div className="section-header">
+              <div className="section-title-wrapper">
+                <Package size={20} />
+                <h3 className="section-title">More Products</h3>
+              </div>
+              <Link to="/products" className="view-all-link">
+                Browse All <ArrowRight size={16} />
+              </Link>
+            </div>
+            <div className="featured-grid compact-grid">
+              {activeProducts.slice(16, 28).map(product => (
+                <div key={product.id} className="grid-product-wrapper">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* --- Call to Order Section --- */}
       {!searchTerm.trim() && (
         <section className="section call-to-order-section">
