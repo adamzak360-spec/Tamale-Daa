@@ -150,7 +150,7 @@ export default function Home() {
   // Two presentation areas using real products
   const featuredProducts = activeProducts.slice(0, 12)
   const discoverProducts = activeProducts.length > 0
-    ? [...activeProducts.slice(0, 8), ...activeProducts.slice(8, 16)]
+    ? [...activeProducts.slice(4, 8), ...activeProducts.slice(8, 12)]
     : []
 
   const categoryCounts: Record<string, number> = {}
@@ -398,7 +398,7 @@ export default function Home() {
       )}
 
       {/* --- More Products Grid (batch after the scrolling row) --- */}
-      {!searchTerm.trim() && activeProducts.length > 16 && (
+      {!searchTerm.trim() && activeProducts.length > 12 && (
         <section className="section product-horizontal-section">
           <div className="container">
             <div className="section-header">
@@ -411,7 +411,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="featured-grid compact-grid">
-              {activeProducts.slice(16, 28).map(product => (
+              {activeProducts.slice(12, 24).map(product => (
                 <div key={product.id} className="grid-product-wrapper">
                   <ProductCard product={product} />
                 </div>
