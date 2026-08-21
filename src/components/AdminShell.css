@@ -111,7 +111,13 @@
   gap: 8px;
   transition: background var(--transition-fast), color var(--transition-fast);
   white-space: nowrap;
-  overflow: hidden;
+}
+
+.sidebar-item-label {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .sidebar-item:hover {
