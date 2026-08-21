@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { lazy, Suspense } from 'react'
 import AdminShell, { SidebarSection } from '../components/AdminShell'
-import AdminDashboard from './admin/AdminDashboard'
 import AdminVisibility from './admin/AdminVisibility'
+import { Button, KpiCard, StatusBadge, SkeletonTable, EmptyState } from '../components/ui'
+import { formatCurrency } from '../utils/currency'
+import { Package, ShoppingBag, Wallet, BellRing } from 'lucide-react'
 import {
   getMyStore,
   getPayouts,
@@ -114,9 +116,14 @@ export default function SellerDashboard() {
 
   const sections: SidebarSection[] = [
     {
-      title: 'My Store',
+      title: 'Overview',
       items: [
         { key: 'dashboard', label: 'Dashboard' },
+      ],
+    },
+    {
+      title: 'My Store',
+      items: [
         { key: 'products', label: 'My Products', badge: products.length },
         { key: 'add', label: '+ Add Product' },
         { key: 'visibility', label: 'Product Visibility' },
@@ -137,6 +144,20 @@ export default function SellerDashboard() {
     },
   ]
 
+  const myOrders = orders
+  const pendingOrders = myOrders.filter(o => o.status === 'pending').length
+  const totalRevenue = myOrders.filter(o => o.payment_status === 'paid').reduce((s, o) => s + (Number(o.amount_paid) || o.total || 0), 0)
+  const awaitingConfirmation = myOrders.filter(o => o.status === 'delivered' && o.payment_status !== 'paid').length
+  const storeSlug = store?.slug || store?.id
+
+  const metrics = [
+    { label: 'My Products', value: String(products.length), sub: `${products.filter(p => p.status === 'active').length} active` },
+    { label: 'My Orders', value: String(myOrders.length), sub: `${pendingOrders} pending` },
+    { label: 'Revenue (Paid)', value: formatCurrency(totalRevenue) },
+    { label: 'Awaiting Confirmation', value: String(awaitingConfirmation), sub: awaitingConfirmation > 0 ? 'Customer must confirm delivery to settle' : 'All settled' },
+    { label: 'Payouts Issued', value: formatCurrency(sellerStats.totalPayouts) },
+  ]
+
   return (
     <AdminShell
       title="Seller Dashboard"
@@ -146,7 +167,46 @@ export default function SellerDashboard() {
       userLabel={store.owner_email ?? ''}
     >
       <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
-        {view === 'dashboard' && <AdminDashboard stats={sellerStats} products={products} loading={loading} onAddProduct={() => setView('add')} />}
+        {view === 'dashboard' && (
+          <div className="dashboard-content">
+            <div className="dashboard-greeting">
+              <h2 className="greeting-title">Welcome back, {store.business_name} 👋</h2>
+              <p className="greeting-sub">Here's an overview of your store.</p>
+            </div>
+            <div style={{ marginBottom: 18 }}>
+              <Button variant="outline" onClick={() => window.open(`/store/${storeSlug}`, '_blank')} icon={<Package size={16} />}>Visit My Store</Button>
+            </div>
+            <div className="kpi-grid">
+              {loading ? <SkeletonTable rows={2} cols={4} /> : metrics.map((m, i) => (
+                <KpiCard key={m.label} icon={[<Package size={20} />, <ShoppingBag size={20} />, <Wallet size={20} />, <BellRing size={20} />][i]} iconBg={i % 2 === 0 ? 'var(--color-navy-light)' : 'var(--color-teal-light)'} label={m.label} value={m.value} sub={m.sub} />
+              ))}
+            </div>
+            <div className="dashboard-section">
+              <div className="dashboard-section-header">
+                <h3>My Products</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{products.length} total</span>
+              </div>
+              {products.length === 0 ? (
+                <EmptyState title="No products yet" message="Add your first product to start selling on Tamale Daa." action={{ label: '+ Add Product', onClick: () => setView('add') }} />
+              ) : (
+                <div className="recent-orders">
+                  {products.slice(0, 4).map(p => (
+                    <div key={p.id} className="recent-order-card">
+                      <div>
+                        <div className="recent-order-name">{p.name}</div>
+                        <div className="recent-order-meta">{p.category} · Stock: {p.stock_quantity}</div>
+                      </div>
+                      <div className="recent-order-right">
+                        <div className="recent-order-total">GH₵{Number(p.price).toLocaleString()}</div>
+                        <StatusBadge status={p.status}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</StatusBadge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {view === 'products' && (
           <div className="products-list-content">
             <div className="view-header-row">

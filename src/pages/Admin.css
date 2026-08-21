@@ -775,3 +775,50 @@ tr:hover td {
     padding: 10px 12px;
   }
 }
+
+/* Greeting & KPI grid */
+.dashboard-greeting { margin: 0 0 16px; }
+.greeting-title { font-size: 1.55rem; color: var(--color-navy); margin: 0 0 4px; font-weight: 700; }
+.greeting-sub { margin: 0; color: var(--color-text-secondary); font-size: 0.95rem; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--color-bg, #fff);
+  border: 1px solid var(--color-border, #e5eaf0);
+  border-radius: var(--radius-lg, 14px);
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.kpi-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-weight: 700; color: var(--color-text);
+}
+.kpi-value { font-size: 1.35rem; font-weight: 800; color: var(--color-navy); line-height: 1.2; white-space: nowrap; }
+.kpi-label { font-size: 0.78rem; color: var(--color-text-secondary); margin-top: 2px; font-weight: 500; }
+
+/* Recent orders */
+.dashboard-section { margin: 0 0 24px; }
+.dashboard-section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.dashboard-section-header h3 { margin: 0; color: var(--color-navy); font-size: 1.05rem; }
+.recent-orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.recent-order-card {
+  background: var(--color-bg, #fff); border: 1px solid var(--color-border, #e5eaf0);
+  border-radius: var(--radius-lg, 14px); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;
+  box-shadow: var(--shadow-sm); transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.recent-order-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.recent-order-name { font-weight: 700; color: var(--color-text); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-order-meta { color: var(--color-text-secondary); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-order-right { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.recent-order-total { font-weight: 800; color: var(--color-teal); font-size: 0.98rem; white-space: nowrap; }

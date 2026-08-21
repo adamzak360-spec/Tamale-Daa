@@ -1,9 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Menu, X, Bell } from 'lucide-react'
+import { Menu, X, Bell, Package, ShoppingBag, Star, Boxes, TrendingUp, FileBarChart, UserPlus, Receipt, Wallet, Megaphone, Target, Eye, Newspaper, Megaphone as AdIcon, Truck, Store, Settings, BookOpen, BellRing, UserCircle, LogOut, ExternalLink, LayoutGrid } from 'lucide-react'
 import { getNotifications, type NotificationItem } from '../services/marketplaceService'
 import { useAuth } from '../context/AuthContext'
 import './AdminShell.css'
+
+export const ICONS: Record<string, React.ReactNode> = {
+  dashboard: <LayoutGrid size={18} />, products: <Package size={18} />, orders: <ShoppingBag size={18} />,
+  reviews: <Star size={18} />, inventory: <Boxes size={18} />, suppliers: <UserPlus size={18} />,
+  sellers: <Store size={18} />, payouts: <Wallet size={18} />, analytics: <TrendingUp size={18} />,
+  reports: <FileBarChart size={18} />, promotions: <Megaphone size={18} />, ads: <AdIcon size={18} />,
+  visibility: <Eye size={18} />, news: <Newspaper size={18} />, advertise: <Target size={18} />,
+  manual: <BookOpen size={18} />, deliverySettings: <Truck size={18} />, storeSettings: <Store size={18} />,
+  marketplaceSettings: <Settings size={18} />, notifications: <BellRing size={18} />,
+  pos: <Receipt size={18} />, add: <Package size={18} />, edit: <Package size={18} />,
+  profile: <UserCircle size={18} />, signout: <LogOut size={18} />, publicSite: <ExternalLink size={18} />,
+}
 
 export interface SidebarSection {
   title: string
@@ -92,6 +104,7 @@ export default function AdminShell({ title, sections, active, onSelect, children
                   onClick={() => go(item.key)}
                   title={collapsed ? item.label : undefined}
                 >
+                  <span className="sidebar-item-icon" aria-hidden="true">{ICONS[item.key]}</span>
                   <span className="sidebar-item-label">{item.label}</span>
                   {item.badge != null && item.badge > 0 && (
                     <span className="sidebar-badge">{item.badge}</span>
@@ -114,9 +127,11 @@ export default function AdminShell({ title, sections, active, onSelect, children
       </nav>
       <div className="sidebar-footer">
         <button className="sidebar-item" onClick={() => navigate('/')}>
+          <span className="sidebar-item-icon" aria-hidden="true">{ICONS.publicSite}</span>
           <span className="sidebar-item-label">View Public Site</span>
         </button>
         <button className="sidebar-item signout" onClick={() => { signOut(); navigate('/') }}>
+          <span className="sidebar-item-icon" aria-hidden="true">{ICONS.signout}</span>
           <span className="sidebar-item-label">Sign Out ({userLabel || user?.email || ''})</span>
         </button>
       </div>

@@ -5,6 +5,7 @@ import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import './index.css'
+import './styles/tokens.css'
 import './animations.css'
 import './components/ProductGrid.css' // Ensure grid styles have priority
 

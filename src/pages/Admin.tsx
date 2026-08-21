@@ -425,51 +425,46 @@ export default function Admin() {
       title: 'Overview',
       items: [
         { key: 'dashboard', label: 'Dashboard' },
-        { key: 'orders', label: 'Orders', badge: orders.length },
-        { key: 'pos', label: 'POS' },
       ],
     },
     {
-      title: 'Catalog',
+      title: 'Marketplace',
       items: [
         { key: 'products', label: 'Products', badge: products.length },
         { key: 'add', label: '+ Add Product' },
-        { key: 'inventory', label: 'Inventory' },
-        { key: 'visibility', label: 'Product Visibility' },
-      ],
-    },
-    {
-      title: 'Sellers',
-      items: [
-        { key: 'sellers', label: 'Registered Sellers' },
-        { key: 'payouts', label: 'Seller Payouts' },
-        { key: 'suppliers', label: 'Suppliers' },
-        { key: 'promotions', label: 'Promote Products' },
-      ],
-    },
-    {
-      title: 'Insights',
-      items: [
+        { key: 'orders', label: 'Orders', badge: orders.length },
         { key: 'reviews', label: 'Reviews', badge: reviews.length },
+        { key: 'inventory', label: 'Inventory' },
+        { key: 'sellers', label: 'Registered Sellers' },
+      ],
+    },
+    {
+      title: 'Business',
+      items: [
         { key: 'analytics', label: 'Analytics' },
         { key: 'reports', label: 'Reports' },
+        { key: 'payouts', label: 'Seller Payouts' },
+        { key: 'suppliers', label: 'Suppliers' },
+        { key: 'pos', label: 'POS' },
       ],
     },
     {
       title: 'Marketing',
       items: [
-        { key: 'news', label: 'News Updates' },
+        { key: 'promotions', label: 'Promote Products' },
         { key: 'ads', label: 'Ads / Advertising' },
         { key: 'advertise', label: 'Advertise On Tamale Daa' },
-        { key: 'manual', label: 'Operations Manual' },
+        { key: 'visibility', label: 'Product Visibility' },
+        { key: 'news', label: 'News Updates' },
       ],
     },
     {
-      title: 'Settings',
+      title: 'Operations',
       items: [
-        { key: 'marketplaceSettings', label: 'Marketplace Settings' },
-        { key: 'storeSettings', label: 'Store Settings' },
         { key: 'deliverySettings', label: 'Delivery Settings' },
+        { key: 'storeSettings', label: 'Store Settings' },
+        { key: 'marketplaceSettings', label: 'Marketplace Settings' },
+        { key: 'manual', label: 'Operations Manual' },
         { key: 'notifications', label: 'Customer Chats' },
       ],
     },
@@ -523,7 +518,13 @@ export default function Admin() {
 
       <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
         {view === 'dashboard' && (
-          <AdminDashboard stats={stats} products={products} loading={productsLoading} onAddProduct={() => switchView('add')} />
+          <AdminDashboard
+        stats={stats}
+        products={products}
+        orders={orders}
+        loading={productsLoading}
+        onAddProduct={() => switchView('add')}
+      />
         )}
         {view === 'products' && (
           <AdminProducts
