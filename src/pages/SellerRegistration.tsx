@@ -4,6 +4,59 @@ import { useAuth } from '../context/AuthContext'
 import { createSeller } from '../services/marketplaceService'
 import { supabase, isSupabaseConfigured } from '../supabaseClient'
 
+// Payout methods with their per-method required fields (label shown to admin, JSON details stored)
+const PAYOUT_METHODS: { id: string; label: string; fields: { key: string; label: string; placeholder: string }[] }[] = [
+  {
+    id: 'mobile_money',
+    label: 'Mobile Money (MoMo)',
+    fields: [
+      { key: 'network', label: 'Mobile Network', placeholder: 'e.g. MTN, Telecel, AT' },
+      { key: 'number', label: 'MoMo Number', placeholder: 'e.g. 024 000 0000' },
+      { key: 'name', label: 'Account Name', placeholder: 'Registered name on the MoMo account' },
+    ],
+  },
+  {
+    id: 'bank_transfer',
+    label: 'Bank Transfer',
+    fields: [
+      { key: 'bank', label: 'Bank Name', placeholder: 'e.g. GCB, Fidelity, Stanbic' },
+      { key: 'account_number', label: 'Account Number', placeholder: 'e.g. 1234567890' },
+      { key: 'account_name', label: 'Account Name', placeholder: 'Name on the bank account' },
+    ],
+  },
+  {
+    id: 'paypal',
+    label: 'PayPal',
+    fields: [
+      { key: 'email', label: 'PayPal Email', placeholder: 'e.g. name@example.com' },
+    ],
+  },
+  {
+    id: 'card',
+    label: 'Card (Visa / Mastercard)',
+    fields: [
+      { key: 'card_number', label: 'Card Number', placeholder: 'e.g. 4111 1111 1111 1111' },
+      { key: 'cardholder_name', label: 'Cardholder Name', placeholder: 'Name printed on the card' },
+      { key: 'expiry', label: 'Expiry Date', placeholder: 'e.g. 12/28 (MM/YY)' },
+    ],
+  },
+  {
+    id: 'cash_pickup',
+    label: 'Cash / Office Pickup',
+    fields: [
+      { key: 'contact', label: 'Contact for Pickup', placeholder: 'Phone number to arrange pickup' },
+    ],
+  },
+  {
+    id: 'other',
+    label: 'Other Method',
+    fields: [
+      { key: 'method', label: 'Method Name', placeholder: 'e.g. Western Union, Crypto wallet' },
+      { key: 'reference', label: 'Reference Details', placeholder: 'Your receiving details for this method' },
+    ],
+  },
+]
+
 function slugify(name: string) {
   return name
     .toLowerCase()
@@ -24,6 +77,8 @@ export default function SellerRegistration() {
     payment_method: '',
     payment_reference: '',
   })
+  // Extra payout fields keyed by payment method (stored as JSON when submitting)
+  const [payoutFields, setPayoutFields] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState('')
@@ -41,6 +96,14 @@ export default function SellerRegistration() {
     }
     if (!form.business_name.trim()) { setError('Business name is required.'); return }
     if (!form.owner_name.trim()) { setError('Your name is required.'); return }
+    if (!form.payment_method) { setError('Please choose a payout method.'); return }
+    const method = PAYOUT_METHODS.find(m => m.id === form.payment_method)
+    const payoutDetails: Record<string, string> = {}
+    for (const f of method?.fields || []) {
+      const v = (payoutFields[f.key] || '').trim()
+      if (!v) { setError(`Payout detail "${f.label}" is required.`); return }
+      payoutDetails[f.key] = v
+    }
 
     setSubmitting(true)
     try {
@@ -54,8 +117,8 @@ export default function SellerRegistration() {
         description: form.description.trim() || null,
         location: form.location.trim() || null,
         category: form.category.trim() || null,
-        payment_method: form.payment_method.trim() || null,
-        payment_reference: form.payment_reference.trim() || null,
+        payment_method: method?.label || null,
+        payment_reference: JSON.stringify(payoutDetails),
         status: 'pending',
       })
       if (!existing) throw new Error('The application could not be saved. Please make sure you are logged in, then try again. If it still fails, contact support.')
@@ -70,6 +133,23 @@ export default function SellerRegistration() {
       setSubmitting(false)
     }
   }
+
+  const payoutLabelStyle: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 600, color: '#374151' }
+  const payoutInputStyle: React.CSSProperties = { padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', minWidth: 0 }
+
+  const PayoutField = ({ f }: { f: { key: string; label: string; placeholder: string } }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <label style={payoutLabelStyle}>
+        {f.label}<span style={{ color: '#dc2626' }}> *</span>
+      </label>
+      <input
+        value={payoutFields[f.key] || ''}
+        onChange={e => setPayoutFields(prev => ({ ...prev, [f.key]: e.target.value }))}
+        placeholder={f.placeholder}
+        style={payoutInputStyle}
+      />
+    </div>
+  )
 
   const field = (label: string, name: keyof typeof form, required = false, placeholder = '') => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -155,8 +235,28 @@ export default function SellerRegistration() {
             <strong>Payout details</strong> — how you'd like to receive your settled earnings (kept private).
           </p>
         </div>
-        {field('Payout Method', 'payment_method', false, 'e.g. Mobile Money, Bank Transfer')}
-        {field('Payout Reference', 'payment_reference', false, 'e.g. Momo number or account number')}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={payoutLabelStyle}>
+            Payout Method<span style={{ color: '#dc2626' }}> *</span>
+          </label>
+          <select
+            value={form.payment_method}
+            onChange={e => { set('payment_method', e.target.value); setPayoutFields({}) }}
+            style={{ ...payoutInputStyle, background: '#fff' }}
+          >
+            <option value="">— Select payout method —</option>
+            {PAYOUT_METHODS.map(m => (
+              <option key={m.id} value={m.id}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+        {form.payment_method ? (
+          <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+            {(PAYOUT_METHODS.find(m => m.id === form.payment_method)?.fields || []).map(f => (
+              <PayoutField key={f.key} f={f} />
+            ))}
+          </div>
+        ) : null}
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', paddingTop: 14 }}>
           <button
             type="submit"

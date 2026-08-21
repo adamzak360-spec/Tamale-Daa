@@ -95,7 +95,21 @@ export default function AdminSellers() {
                   <td>{s.location || '—'}</td>
                   <td>
                     <div style={{ textTransform: 'capitalize' }}>{s.payment_method || '—'}</div>
-                    {s.payment_reference && <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.payment_reference}</div>}
+                    {s.payment_reference ? (() => {
+                      try {
+                        const details = JSON.parse(s.payment_reference)
+                        if (details && typeof details === 'object' && !Array.isArray(details)) {
+                          return Object.entries(details).map(([k, v]) => (
+                            <div key={k} style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                              <span style={{ fontWeight: 600, textTransform: 'capitalize' }}>{k.replace(/_/g, ' ')}:</span> {String(v)}
+                            </div>
+                          ))
+                        }
+                        return <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.payment_reference}</div>
+                      } catch {
+                        return <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.payment_reference}</div>
+                      }
+                    })() : null}
                   </td>
                   <td>
                     <span className="status-badge" style={{ background: STATUS_STYLES[s.status]?.bg, color: STATUS_STYLES[s.status]?.fg, textTransform: 'capitalize' }}>
