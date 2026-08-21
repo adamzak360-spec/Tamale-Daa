@@ -70,6 +70,7 @@ const prefetchFAQ = () => import('./pages/FAQ')
 const prefetchLogin = () => import('./pages/Login')
 import TermsPopup from './components/TermsPopup'
 import WhatsAppButton from './components/WhatsAppButton'
+import { ToastHost } from './components/ui'
 
 function App() {
   return (
@@ -340,6 +341,7 @@ function AppShell() {
       <CartSidebar />
       {!isAdminRoute && !isCustomerRoute && <Footer />}
       <WhatsAppButton />
+      <ToastHost />
     </div>
   )
 }
