@@ -5,6 +5,9 @@ import {
   exportOrdersCSV,
   exportCustomersCSV,
 } from '../../services/adminAnalyticsService'
+import { Button, Select, StatusBadge, PageHeader, SkeletonTable, EmptyState } from '../../components/ui'
+import { toast } from '../../components/ui'
+import { Search, FileDown, Users } from 'lucide-react'
 
 interface AdminOrdersProps {
   orders: Order[]
@@ -44,7 +47,6 @@ export default function AdminOrders({ orders, loading, searchTerm: eSearch, onSe
   const [iFiltSource, setIFiltSource] = useState('')
   const filterSource = eFiltSource !== undefined ? eFiltSource : iFiltSource
   const setFilterSource = eSetFiltSource || setIFiltSource
-  const [exportNotice, setExportNotice] = useState('')
 
   const filtered = useMemo(() => {
     return orders.filter(order => {
@@ -63,44 +65,42 @@ export default function AdminOrders({ orders, loading, searchTerm: eSearch, onSe
     try {
       const csv = exportOrdersCSV(orders)
       downloadCSV(csv, `orders-${new Date().toISOString().split('T')[0]}.csv`)
-      setExportNotice('Orders exported successfully')
+      toast('Orders exported successfully', 'success')
     } catch (err) {
-      setExportNotice('Failed to export orders')
+      toast('Failed to export orders', 'error')
     }
-    setTimeout(() => setExportNotice(''), 3000)
   }
 
   const exportCustomers = async () => {
     try {
       const csv = await exportCustomersCSV()
       downloadCSV(csv, `customers-${new Date().toISOString().split('T')[0]}.csv`)
-      setExportNotice('Customers exported successfully')
+      toast('Customers exported successfully', 'success')
     } catch (err) {
-      setExportNotice('Failed to export customers')
+      toast('Failed to export customers', 'error')
     }
-    setTimeout(() => setExportNotice(''), 3000)
   }
 
   return (
-    <div className="orders-list-content">
-      {exportNotice && (
-        <div className={`notification ${exportNotice.includes('Failed') ? 'error' : 'success'}`}>
-          <span>{exportNotice}</span>
-        </div>
-      )}
+    <div className="page-content">
+      <PageHeader title="Orders" subtitle={`${filtered.length} of ${orders.length} orders`} actions={
+        <>
+          <Button variant="outline" size="sm" onClick={() => { if (onExportOrders) onExportOrders(); else exportOrders() }} icon={<FileDown size={15} />}>Export Orders</Button>
+          <Button variant="outline" size="sm" onClick={() => { if (onExportCustomers) onExportCustomers(); else exportCustomers() }} icon={<Users size={15} />}>Export Customers</Button>
+        </>
+      } />
       <div className="search-filter-bar">
-        <input
-          type="text"
-          placeholder="Search orders by customer or ID..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="filter-select"
-        >
+        <div className="search-input-wrap">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Search orders by customer or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter status">
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
@@ -109,27 +109,21 @@ export default function AdminOrders({ orders, loading, searchTerm: eSearch, onSe
           <option value="out-for-delivery">Out for Delivery</option>
           <option value="delivered">Delivered</option>
           <option value="cancelled">Cancelled</option>
-        </select>
-        <select
-          value={filterSource}
-          onChange={(e) => setFilterSource(e.target.value)}
-          className="filter-select"
-        >
+        </Select>
+        <Select value={filterSource} onChange={(e) => setFilterSource(e.target.value)} aria-label="Filter source">
           <option value="">All Sources</option>
           <option value="ONLINE">Online</option>
           <option value="POS">POS</option>
-        </select>
-        <button onClick={() => { if (onExportOrders) onExportOrders(); else exportOrders() }} className="btn-export" title="Export orders as CSV">Export Orders</button>
-        <button onClick={() => { if (onExportCustomers) onExportCustomers(); else exportCustomers() }} className="btn-export" title="Export customers as CSV">Export Customers</button>
+        </Select>
       </div>
 
       {loading && orders.length === 0 ? (
-        <div className="empty-state"><h3>Loading orders...</h3></div>
+        <SkeletonTable rows={5} cols={5} />
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <h3>{orders.length === 0 ? 'No orders yet' : 'No orders match your search'}</h3>
-          <p>{orders.length === 0 ? 'Orders will appear here once customers place them.' : 'Try adjusting your search or filters.'}</p>
-        </div>
+        <EmptyState
+          title={orders.length === 0 ? 'No orders yet' : 'No orders match your search'}
+          message={orders.length === 0 ? 'Orders will appear here once customers place them.' : 'Try adjusting your search or filters.'}
+        />
       ) : (
         <div className="orders-table">
           <table>
@@ -159,10 +153,8 @@ export default function AdminOrders({ orders, loading, searchTerm: eSearch, onSe
                   </td>
                   <td data-label="Status">{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
                   <td data-label="Quantity">{formatCurrency(order.total)}</td>
-                  <td data-label="Date">
-                    <span className={`status-badge status-${order.status}`}>
-                      {order.status.replace('-', ' ')}
-                    </span>
+                  <td data-label="Status">
+                    <StatusBadge status={order.status as any}>{order.status.replace('-', ' ')}</StatusBadge>
                   </td>
                   <td data-label="Status" className="actions-cell">
                     <select

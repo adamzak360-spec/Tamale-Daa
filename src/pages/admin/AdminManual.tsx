@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { getSiteSettings, upsertSiteSetting } from '../../services/marketplaceService'
+import { Button, Textarea, PageHeader } from '../../components/ui'
+import { toast } from '../../components/ui'
+import { Save } from 'lucide-react'
 
 export default function AdminManual() {
   const [text, setText] = useState('')
   const [saving, setSaving] = useState(false)
-  const [notice, setNotice] = useState('')
 
   useEffect(() => { load() }, [])
 
@@ -28,27 +30,23 @@ export default function AdminManual() {
     setSaving(true)
     const ok = await upsertSiteSetting('operations_manual', text)
     setSaving(false)
-    setNotice(ok ? 'Operations manual saved.' : 'Could not save.')
-    setTimeout(() => setNotice(''), 3000)
+    toast(ok ? 'Operations manual saved.' : 'Could not save.', ok ? 'success' : 'error')
   }
 
   return (
-    <div className="manual-content">
-      {notice && <div className={`notification ${notice.includes('Could not') ? 'error' : 'success'}`}><span>{notice}</span></div>}
-      <div className="view-header-row">
-        <div>
-          <h3 className="section-title">Operations Manual</h3>
-          <p className="section-subtitle">Document your store procedures so every operator follows the same process.</p>
-        </div>
-        <button onClick={save} className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Manual'}</button>
-      </div>
-      <textarea
+    <div className="page-content">
+      <PageHeader
+        title="Operations Manual"
+        subtitle="Document your store procedures so every operator follows the same process."
+        actions={<Button variant="primary" size="sm" onClick={save} icon={<Save size={15} />} disabled={saving}>{saving ? 'Saving...' : 'Save Manual'}</Button>}
+      />
+      <Textarea
         value={text}
         onChange={e => setText(e.target.value)}
         rows={24}
-        style={{ width: '100%', padding: 12, border: '1px solid #d1d5db', borderRadius: 8, resize: 'vertical', fontFamily: 'inherit', fontSize: '0.95rem' }}
+        style={{ fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: 1.6 }}
       />
-      <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 8 }}>Tip: keep procedures short and numbered so they are easy to follow.</p>
+      <p style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary, #6b7280)', marginTop: 8 }}>Tip: keep procedures short and numbered so they are easy to follow.</p>
     </div>
   )
 }

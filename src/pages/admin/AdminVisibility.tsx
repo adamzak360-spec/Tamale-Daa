@@ -1,7 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { Product } from '../../types'
 import { updateProduct } from '../../services/productService'
 import { formatCurrency } from '../../utils/currency'
+import { Button, StatusBadge, PageHeader, EmptyState } from '../../components/ui'
+import { toast } from '../../components/ui'
+import { Eye, EyeOff } from 'lucide-react'
 
 interface Props {
   products: Product[]
@@ -9,33 +12,23 @@ interface Props {
 }
 
 export default function AdminVisibility({ products, onToggle }: Props) {
-  const [notice, setNotice] = useState('')
-
   const sorted = useMemo(() => [...products].sort((a, b) => a.name.localeCompare(b.name)), [products])
-
-  const showNotice = (msg: string) => {
-    setNotice(msg)
-    setTimeout(() => setNotice(''), 3000)
-  }
 
   const toggle = async (product: Product) => {
     const newStatus: Product['status'] = product.status === 'active' ? 'inactive' : 'active'
     const ok = await updateProduct(product.id, { status: newStatus })
     if (ok) {
       if (onToggle) onToggle(product, newStatus)
-      showNotice(`${product.name} ${newStatus === 'active' ? 'made visible' : 'hidden'} on the site.`)
-    } else showNotice('Could not update visibility.')
+      toast(`${product.name} ${newStatus === 'active' ? 'made visible' : 'hidden'} on the site.`, 'success')
+    } else toast('Could not update visibility.', 'error')
   }
 
   return (
-    <div className="visibility-content">
-      {notice && <div className={`notification ${notice.includes('Could not') ? 'error' : 'success'}`}><span>{notice}</span></div>}
-      <div className="view-header-row">
-        <div>
-          <h3 className="section-title">Product Visibility</h3>
-          <p className="section-subtitle">Quickly show or hide products on the store without deleting them.</p>
-        </div>
-      </div>
+    <div className="page-content">
+      <PageHeader title="Product Visibility"
+        subtitle={`Quickly show or hide products on the store without deleting them. ${products.length} products.`}
+      />
+      {products.length === 0 && <EmptyState title="No products" message="Add products to manage their visibility." />}
 
       <div className="products-table">
         <table>
@@ -54,18 +47,19 @@ export default function AdminVisibility({ products, onToggle }: Props) {
                 <td>{p.category}</td>
                 <td>{formatCurrency(p.price)}</td>
                 <td>
-                  <span className={`status-badge ${p.status}`}>
+                  <StatusBadge status={p.status}>
                     {p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}
-                  </span>
+                  </StatusBadge>
                 </td>
                 <td>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={p.status === 'active' ? <EyeOff size={14} /> : <Eye size={14} />}
                     onClick={() => toggle(p)}
-                    className="btn-edit"
-                    style={{ backgroundColor: p.status === 'active' ? '#dc2626' : '#16a34a' }}
                   >
                     {p.status === 'active' ? 'Hide' : 'Show'}
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}

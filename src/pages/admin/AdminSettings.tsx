@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getSiteSettings, upsertSiteSetting } from '../../services/marketplaceService'
+import { Button, Input, Textarea, PageHeader, SkeletonTable } from '../../components/ui'
+import { toast } from '../../components/ui'
 
 type Tab = 'marketplace' | 'store' | 'delivery'
 
@@ -27,8 +29,6 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [notice, setNotice] = useState('')
-
   useEffect(() => { load() }, [])
 
   const load = async () => {
@@ -37,43 +37,37 @@ export default function AdminSettings() {
     setLoading(false)
   }
 
-  const showNotice = (msg: string) => {
-    setNotice(msg)
-    setTimeout(() => setNotice(''), 3000)
-  }
-
   const set = (key: string, value: string) => setSettings(prev => ({ ...prev, [key]: value }))
 
   const save = async (key: string) => {
     setSaving(true)
     const ok = await upsertSiteSetting(key, settings[key])
     setSaving(false)
-    showNotice(ok ? `${key.replace(/_/g, ' ')} saved.` : 'Could not save.')
+    toast(ok ? `${key.replace(/_/g, ' ')} saved.` : 'Could not save.', ok ? 'success' : 'error')
   }
 
   const input = (key: string, placeholder: string, type = 'text') => (
-    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-      <input
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+      <Input
         type={type}
         value={settings[key] || ''}
         placeholder={placeholder}
         onChange={e => set(key, e.target.value)}
-        style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: 8 }}
+        style={{ flex: 1 }}
       />
-      <button onClick={() => save(key)} className="btn-edit" disabled={saving} style={{ backgroundColor: '#2563eb' }}>Save</button>
+      <Button variant="primary" size="sm" onClick={() => save(key)} disabled={saving} style={{ height: 44 }}>{saving ? 'Saving…' : 'Save'}</Button>
     </div>
   )
 
   const textarea = (key: string, placeholder: string) => (
     <div>
-      <textarea
+      <Textarea
         rows={4}
         value={settings[key] || ''}
         placeholder={placeholder}
         onChange={e => set(key, e.target.value)}
-        style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 8, resize: 'vertical' }}
       />
-      <button onClick={() => save(key)} className="btn-edit" disabled={saving} style={{ backgroundColor: '#2563eb', marginTop: 8 }}>Save</button>
+      <Button variant="primary" size="sm" onClick={() => save(key)} disabled={saving} style={{ marginTop: 8 }}>{saving ? 'Saving…' : 'Save'}</Button>
     </div>
   )
 
@@ -85,21 +79,32 @@ export default function AdminSettings() {
   )
 
   return (
-    <div className="settings-content">
-      {notice && <div className={`notification ${notice.includes('Could not') ? 'error' : 'success'}`}><span>{notice}</span></div>}
-      <div className="view-header-row">
-        <h3 className="section-title">Marketplace Settings</h3>
-        <p className="section-subtitle">Control your store's identity, contact details, and delivery fees.</p>
-      </div>
+    <div className="page-content">
+      <PageHeader
+        title="Marketplace Settings"
+        subtitle="Control your store's identity, contact details, and delivery fees."
+      />
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {([['marketplace', 'Marketplace'], ['store', 'Store & Contact'], ['delivery', 'Delivery']] as [Tab, string][]).map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)} className="btn-edit" style={{ backgroundColor: tab === key ? '#1e3a8a' : '#f3f4f6', color: tab === key ? '#fff' : '#111827' }}>{label}</button>
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className="btn"
+            style={{
+              backgroundColor: tab === key ? 'var(--color-navy)' : '#fff',
+              color: tab === key ? '#fff' : 'var(--color-navy)',
+              borderColor: tab === key ? 'var(--color-navy)' : 'var(--color-border)',
+              fontWeight: 600,
+            }}
+          >
+            {label}
+          </button>
         ))}
       </div>
 
       {loading ? (
-        <div className="empty-state"><h3>Loading settings...</h3></div>
+        <SkeletonTable rows={4} cols={3} />
       ) : (
         <>
           {tab === 'marketplace' && (

@@ -1,31 +1,23 @@
 import { formatCurrency } from '../../utils/currency'
 import type { Payout } from '../../services/marketplaceService'
-
-const STATUS_STYLES: Record<string, { bg: string; fg: string }> = {
-  pending: { bg: '#fff7ed', fg: '#c2410c' },
-  processing: { bg: '#eff6ff', fg: '#1d4ed8' },
-  paid: { bg: '#f0fdf4', fg: '#15803d' },
-  failed: { bg: '#fef2f2', fg: '#dc2626' },
-}
+import { PageHeader, EmptyState, StatusBadge } from '../../components/ui'
 
 export default function SellerPayouts({ payouts }: { payouts: Payout[] }) {
   const total = payouts.reduce((a, b) => a + (b.amount || 0), 0)
   const paidTotal = payouts.filter(p => p.status === 'paid').reduce((a, b) => a + (b.amount || 0), 0)
 
   return (
-    <div className="payouts-content">
-      <div className="view-header-row">
-        <div>
-          <h3 className="section-title">My Payouts</h3>
-          <p className="section-subtitle">Your settled earnings. Total: {formatCurrency(total)} — paid: {formatCurrency(paidTotal)}</p>
-        </div>
-      </div>
+    <div className="page-content">
+      <PageHeader
+        title="My Payouts"
+        subtitle={`Your settled earnings. Total: ${formatCurrency(total)} — paid: ${formatCurrency(paidTotal)}`}
+      />
 
       {payouts.length === 0 ? (
-        <div className="empty-state">
-          <h3>No payouts yet</h3>
-          <p>The admin records your payouts here after each settlement.</p>
-        </div>
+        <EmptyState
+          title="No payouts yet"
+          message="The admin records your payouts here after each settlement."
+        />
       ) : (
         <div className="products-table">
           <table>
@@ -38,8 +30,8 @@ export default function SellerPayouts({ payouts }: { payouts: Payout[] }) {
                   <td data-label="Amount" style={{ fontWeight: 600 }}>{formatCurrency(p.amount)}</td>
                   <td data-label="Amount">{p.payment_method || '—'}</td>
                   <td data-label="Reference" style={{ fontSize: '0.85rem', color: '#4b5563' }}>{p.payment_reference || '—'}</td>
-                  <td data-label="Amount">
-                    <span className="status-badge" style={{ background: STATUS_STYLES[p.status]?.bg, color: STATUS_STYLES[p.status]?.fg, textTransform: 'capitalize' }}>{p.status}</span>
+                  <td data-label="Status">
+                    <StatusBadge status={p.status}>{p.status}</StatusBadge>
                   </td>
                   <td data-label="Method">{new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>

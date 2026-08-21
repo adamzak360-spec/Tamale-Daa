@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { getConversations, getConversationMessages, type ChatConversationRow } from '../../services/marketplaceService'
 import { getAllProducts } from '../../services/productService'
 import type { Product } from '../../types'
+import { Button, PageHeader, SkeletonTable, EmptyState } from '../../components/ui'
+import { toast } from '../../components/ui'
+import { Send } from 'lucide-react'
 
 export default function AdminNotifications() {
   const [conversations, setConversations] = useState<ChatConversationRow[]>([])
@@ -10,7 +13,6 @@ export default function AdminNotifications() {
   const [selected, setSelected] = useState<ChatConversationRow | null>(null)
   const [messages, setMessages] = useState<any[]>([])
   const [reply, setReply] = useState('')
-  const [notice, setNotice] = useState('')
   const [sending, setSending] = useState(false)
 
   useEffect(() => { load() }, [])
@@ -25,10 +27,6 @@ export default function AdminNotifications() {
     setLoading(false)
   }
 
-  const showNotice = (msg: string) => {
-    setNotice(msg)
-    setTimeout(() => setNotice(''), 3000)
-  }
 
   const openThread = async (c: ChatConversationRow) => {
     setSelected(c)
@@ -40,7 +38,7 @@ export default function AdminNotifications() {
     setSending(true)
     const { supabase } = await import('../../supabaseClient')
     const sb = supabase
-    if (!sb) { showNotice('Not connected.'); setSending(false); return }
+    if (!sb) { toast('Not connected.', 'error'); setSending(false); return }
     const { error } = await sb.from('chat_messages').insert([{
       conversation_id: selected.id,
       sender: 'admin',
@@ -48,32 +46,28 @@ export default function AdminNotifications() {
     }])
     setSending(false)
     if (error) {
-      showNotice('Could not send reply. Check the conversation policy for admin senders.')
+      toast('Could not send reply. Check the conversation policy for admin senders.', 'error')
       return
     }
     setReply('')
     setMessages(await getConversationMessages(selected.id))
-    showNotice('Reply sent.')
+    toast('Reply sent.', 'success')
   }
 
   return (
-    <div className="chats-content">
-      {notice && <div className={`notification ${notice.includes('Could not') ? 'error' : 'success'}`}><span>{notice}</span></div>}
-      <div className="view-header-row">
-        <div>
-          <h3 className="section-title">Customer Chats</h3>
-          <p className="section-subtitle">Every conversation customers start from a product page appears here.</p>
-        </div>
-        <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>{conversations.length} conversation{conversations.length === 1 ? '' : 's'}</span>
-      </div>
+    <div className="page-content">
+      <PageHeader
+        title="Customer Chats"
+        subtitle={`Every conversation customers start from a product page appears here. ${conversations.length} conversation${conversations.length === 1 ? '' : 's'}.`}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 1.5fr', gap: 16, minHeight: 420 }}>
         {/* Thread list */}
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', maxHeight: 520 }}>
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden', maxHeight: 520 }}>
           {loading ? (
-            <div className="empty-state"><h3>Loading...</h3></div>
+            <SkeletonTable rows={4} cols={2} />
           ) : conversations.length === 0 ? (
-            <div className="empty-state"><h3>No conversations yet</h3><p>Chats customers start from product pages appear here.</p></div>
+            <EmptyState title="No conversations yet" message="Chats customers start from product pages appear here." />
           ) : (
             <div style={{ overflowY: 'auto', maxHeight: 520 }}>
               {conversations.map(c => {
@@ -103,14 +97,14 @@ export default function AdminNotifications() {
         </div>
 
         {/* Thread view */}
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column' }}>
           {!selected ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-tertiary, #9ca3af)' }}>
               <p>Select a conversation to read and reply.</p>
             </div>
           ) : (
             <>
-              <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>
+              <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--color-border)', fontWeight: 600 }}>
                 {selected.subject || 'Customer conversation'}
                 {selected.product_id && products[selected.product_id] && (
                   <span style={{ fontWeight: 400, color: '#6b7280', fontSize: '0.8rem' }}> — {products[selected.product_id].name}</span>
@@ -136,15 +130,16 @@ export default function AdminNotifications() {
                 ))}
                 {messages.length === 0 && <p style={{ color: '#9ca3af', textAlign: 'center' }}>No messages yet.</p>}
               </div>
-              <div style={{ padding: 10, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8 }}>
+              <div style={{ padding: 10, borderTop: '1px solid var(--color-border)', display: 'flex', gap: 8 }}>
                 <input
+                  className="form-input"
                   value={reply}
                   onChange={e => setReply(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && sendReply()}
                   placeholder="Type a reply to the customer..."
-                  style={{ flex: 1, padding: 8, border: '1px solid #d1d5db', borderRadius: 8 }}
+                  style={{ flex: 1 }}
                 />
-                <button onClick={sendReply} className="btn-primary" disabled={sending}>{sending ? 'Sending...' : 'Send'}</button>
+                <Button variant="primary" size="sm" icon={<Send size={14} />} onClick={sendReply} disabled={sending}>{sending ? 'Sending...' : 'Send'}</Button>
               </div>
             </>
           )}

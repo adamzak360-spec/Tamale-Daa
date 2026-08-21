@@ -1,4 +1,6 @@
 import type { Product, ProductVariant } from '../../types'
+import { Input, Select, Textarea, Button } from '../../components/ui'
+import { Plus, X } from 'lucide-react'
 
 export type ProductFormState = {
   name: string
@@ -89,68 +91,66 @@ export default function AdminProductForm({
 
   return (
     <div className="product-form-content">
-      <h3>{mode === 'edit' ? `Edit: ${editProduct?.name}` : 'Add New Product'}</h3>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-navy)', marginBottom: '1.25rem' }}>{mode === 'edit' ? `Edit: ${editProduct?.name}` : 'Add New Product'}</h2>
       <form onSubmit={onSubmit} className="admin-form">
         <div className="form-grid">
           <div className="form-group">
-            <label>Product Name</label>
-            <input
-              type="text"
+            <Input
+              label="Product Name"
+              required
               value={formData.name}
+              error={formErrors.name}
               onChange={(e) => set({ name: e.target.value })}
-              className={formErrors.name ? 'error' : ''}
             />
-            {formErrors.name && <span className="error-text">{formErrors.name}</span>}
           </div>
 
           <div className="form-group">
-            <label>Category</label>
-            <input
-              type="text"
+            <Input
+              label="Category"
+              required
               value={formData.category}
-              onChange={(e) => set({ category: e.target.value })}
-              className={formErrors.category ? 'error' : ''}
+              error={formErrors.category}
               list="category-list"
+              onChange={(e) => set({ category: e.target.value })}
             />
             <datalist id="category-list">
               {categories.map(cat => <option key={cat} value={cat} />)}
             </datalist>
-            {formErrors.category && <span className="error-text">{formErrors.category}</span>}
           </div>
 
           <div className="form-group">
-            <label>Price</label>
-            <input
+            <Input
+              label="Price"
               type="number"
               step="0.01"
+              required
               value={formData.price}
+              error={formErrors.price}
               onChange={(e) => set({ price: e.target.value })}
-              className={formErrors.price ? 'error' : ''}
             />
-            {formErrors.price && <span className="error-text">{formErrors.price}</span>}
           </div>
 
           <div className="form-group">
-            <label>Stock Quantity</label>
-            <input
+            <Input
+              label="Stock Quantity"
               type="number"
+              required
               value={formData.stock_quantity}
+              error={formErrors.stock_quantity}
               onChange={(e) => set({ stock_quantity: e.target.value })}
-              className={formErrors.stock_quantity ? 'error' : ''}
             />
-            {formErrors.stock_quantity && <span className="error-text">{formErrors.stock_quantity}</span>}
           </div>
 
           <div className="form-group">
-            <label>Status</label>
-            <select
+            <Select
+              label="Status"
               value={formData.status}
               onChange={(e) => set({ status: e.target.value as ProductFormState['status'] })}
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
               <option value="out-of-stock">Out of Stock</option>
-            </select>
+            </Select>
           </div>
 
           <div className="form-group full-width">
@@ -208,8 +208,11 @@ export default function AdminProductForm({
                 ))}
               </div>
               <div className="variant-actions">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
+                  icon={<Plus size={14} />}
                   className="btn-add-variant"
                   onClick={() => {
                     const newVariant = {
@@ -222,8 +225,8 @@ export default function AdminProductForm({
                     set({ variants: [...formData.variants, newVariant] })
                   }}
                 >
-                  + Add Size Variant
-                </button>
+                  Add Size Variant
+                </Button>
                 <div className="quick-sizes">
                   {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].map(size => (
                     <button
@@ -252,14 +255,14 @@ export default function AdminProductForm({
           )}
 
           <div className="form-group full-width">
-            <label>Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => set({ description: e.target.value })}
-              className={formErrors.description ? 'error' : ''}
+            <Textarea
+              label="Description"
+              required
               rows={4}
+              value={formData.description}
+              error={formErrors.description}
+              onChange={(e) => set({ description: e.target.value })}
             />
-            {formErrors.description && <span className="error-text">{formErrors.description}</span>}
           </div>
 
           <div className="form-group full-width">
@@ -425,33 +428,30 @@ export default function AdminProductForm({
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '15px' }}>
-              <input
-                type="text"
+              <Input
                 placeholder="Specification Name (e.g. Material, Warranty)"
                 value={formData.newSpecKey}
                 onChange={(e) => set({ newSpecKey: e.target.value })}
-                style={{ padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }}
               />
-              <input
-                type="text"
+              <Input
                 placeholder="Specification Value (e.g. 100% Cotton, 1 Year)"
                 value={formData.newSpecValue}
                 onChange={(e) => set({ newSpecValue: e.target.value })}
-                style={{ padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }}
               />
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="sm"
+                icon={<Plus size={14} />}
                 onClick={() => {
                   if (formData.newSpecKey.trim() && formData.newSpecValue.trim()) {
                     const updated = { ...formData.specifications, [formData.newSpecKey.trim()]: formData.newSpecValue.trim() }
                     set({ specifications: updated, newSpecKey: '', newSpecValue: '' })
                   }
                 }}
-                className="btn-secondary"
-                style={{ padding: '10px 20px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
               >
                 Add Spec
-              </button>
+              </Button>
             </div>
 
             {Object.keys(formData.specifications).length > 0 && (
@@ -466,9 +466,10 @@ export default function AdminProductForm({
                         delete updated[key]
                         set({ specifications: updated })
                       }}
-                      style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      aria-label={`Remove ${key}`}
+                      style={{ background: 'var(--color-danger)', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                     >
-                      Remove
+                      <X size={12} /> Remove
                     </button>
                   </div>
                 ))}
@@ -478,12 +479,10 @@ export default function AdminProductForm({
         </div>
 
         <div className="form-actions">
-          <button type="button" onClick={onCancel} className="btn-secondary" disabled={isSubmitting}>
-            Cancel
-          </button>
-          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+          <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>Cancel</Button>
+          <Button type="submit" variant="primary" disabled={isSubmitting}>
             {isSubmitting ? 'Saving...' : mode === 'edit' ? 'Update Product' : 'Create Product'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

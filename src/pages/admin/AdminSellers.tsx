@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react'
 
 import { getSellers, approveSeller, rejectSeller, type Seller } from '../../services/marketplaceService'
-
-const STATUS_STYLES: Record<string, { bg: string; fg: string }> = {
-  pending: { bg: '#fff7ed', fg: '#c2410c' },
-  approved: { bg: '#f0fdf4', fg: '#15803d' },
-  rejected: { bg: '#fef2f2', fg: '#dc2626' },
-  suspended: { bg: '#f3f4f6', fg: '#4b5563' },
-}
+import { Button, StatusBadge, PageHeader, SkeletonTable, EmptyState, Modal, Input } from '../../components/ui'
+import { toast } from '../../components/ui'
+import { Check, X } from 'lucide-react'
 
 export default function AdminSellers() {
   const [sellers, setSellers] = useState<Seller[]>([])
   const [loading, setLoading] = useState(true)
-  const [notice, setNotice] = useState('')
+  const [rejectTarget, setRejectTarget] = useState<Seller | null>(null)
+  const [approveTarget, setApproveTarget] = useState<Seller | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -22,45 +21,44 @@ export default function AdminSellers() {
     setLoading(false)
   }
 
-  const showNotice = (msg: string) => {
-    setNotice(msg)
-    setTimeout(() => setNotice(''), 3000)
-  }
-
   const handleApprove = async (s: Seller) => {
+    setBusy(true)
     const ok = await approveSeller(s.id)
+    setBusy(false)
     if (ok) {
-      showNotice(`${s.business_name} approved — they now have seller access.`)
+      toast(`${s.business_name} approved — they now have seller access.`, 'success')
       await load()
-    } else showNotice('Could not approve seller.')
+    } else toast('Could not approve seller.', 'error')
   }
 
-  const handleReject = async (s: Seller) => {
-    const note = window.prompt(`Reject ${s.business_name} (optional reason shown to seller):`)
-    if (note === null) return
-    const ok = await rejectSeller(s.id, note || undefined)
+  const handleReject = async () => {
+    if (!rejectTarget) return
+    const note = rejectReason.trim() || undefined
+    setBusy(true)
+    const ok = await rejectSeller(rejectTarget.id, note)
+    setBusy(false)
     if (ok) {
-      showNotice(`${s.business_name} rejected.`)
+      toast(`${rejectTarget.business_name} rejected.`, 'success')
+      setRejectTarget(null)
+      setRejectReason('')
       await load()
-    } else showNotice('Could not reject seller.')
+    } else toast('Could not reject seller.', 'error')
   }
 
   return (
-    <div className="sellers-list-content">
-      {notice && <div className={`notification ${notice.includes('Could not') ? 'error' : 'success'}`}><span>{notice}</span></div>}
-
-      <div className="view-header-row">
-        <h3 className="section-title">Registered Sellers</h3>
-        <p className="section-subtitle">Review applications, approve sellers, and manage payouts eligibility.</p>
-      </div>
+    <div className="page-content">
+      <PageHeader
+        title="Registered Sellers"
+        subtitle={`Review applications, approve sellers, and manage payouts eligibility. ${sellers.length} registered.`}
+      />
 
       {loading ? (
-        <div className="empty-state"><h3>Loading sellers...</h3></div>
+        <SkeletonTable rows={4} cols={6} />
       ) : sellers.length === 0 ? (
-        <div className="empty-state">
-          <h3>No sellers yet</h3>
-          <p>Seller applications will appear here for your review.</p>
-        </div>
+        <EmptyState
+          title="No sellers yet"
+          message="Seller applications will appear here for your review."
+        />
       ) : (
         <div className="products-table">
           <table>
@@ -111,24 +109,22 @@ export default function AdminSellers() {
                       }
                     })() : null}
                   </td>
-                  <td data-label="Owner">
-                    <span className="status-badge" style={{ background: STATUS_STYLES[s.status]?.bg, color: STATUS_STYLES[s.status]?.fg, textTransform: 'capitalize' }}>
-                      {s.status}
-                    </span>
+                  <td data-label="Status">
+                    <StatusBadge status={s.status}>{s.status}</StatusBadge>
                   </td>
                   <td data-label="Location">{new Date(s.created_at).toLocaleDateString()}</td>
                   <td data-label="Actions" className="actions-cell">
                     {s.status === 'pending' && (
                       <>
-                        <button onClick={() => handleApprove(s)} className="btn-edit" style={{ backgroundColor: '#16a34a' }}>Approve</button>
-                        <button onClick={() => handleReject(s)} className="btn-delete">Reject</button>
+                        <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => setApproveTarget(s)}>Approve</Button>
+                        <Button variant="ghost" size="sm" icon={<X size={14} />} onClick={() => { setRejectTarget(s); setRejectReason('') }}>Reject</Button>
                       </>
                     )}
                     {s.status === 'approved' && (
-                      <button onClick={() => handleReject(s)} className="btn-delete">Suspend</button>
+                      <Button variant="ghost" size="sm" icon={<X size={14} />} onClick={() => { setRejectTarget(s); setRejectReason('') }}>Suspend</Button>
                     )}
                     {s.status === 'rejected' && (
-                      <button onClick={() => handleApprove(s)} className="btn-edit" style={{ backgroundColor: '#16a34a' }}>Approve</button>
+                      <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => setApproveTarget(s)}>Approve</Button>
                     )}
                     {s.admin_note && <div title={s.admin_note} style={{ fontSize: '0.75rem', color: '#dc2626' }}>Note set</div>}
                   </td>
@@ -138,6 +134,46 @@ export default function AdminSellers() {
           </table>
         </div>
       )}
+
+      <Modal
+        open={!!rejectTarget}
+        onClose={() => { setRejectTarget(null); setRejectReason('') }}
+        title={rejectTarget?.status === 'approved' ? `Suspend ${rejectTarget?.business_name}` : `Reject ${rejectTarget?.business_name}`}
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => { setRejectTarget(null); setRejectReason('') }}>Cancel</Button>
+            <Button variant="danger-solid" size="sm" onClick={handleReject} disabled={busy}>{busy ? 'Please wait…' : (rejectTarget?.status === 'approved' ? 'Suspend' : 'Reject')}</Button>
+          </>
+        }
+      >
+        <p style={{ margin: '0 0 0.75rem', fontSize: '0.92rem', color: 'var(--color-text-secondary)' }}>
+          {rejectTarget?.status === 'approved'
+            ? `Suspending will revoke this seller's dashboard access.`
+            : `The reason you enter will be shown to the seller.`}
+        </p>
+        <Input
+          label="Reason (optional)"
+          placeholder="e.g. Incomplete verification documents"
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+        />
+      </Modal>
+
+      <Modal
+        open={!!approveTarget}
+        onClose={() => setApproveTarget(null)}
+        title={`Approve ${approveTarget?.business_name}`}
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setApproveTarget(null)}>Cancel</Button>
+            <Button variant="primary" size="sm" icon={<Check size={14} />} onClick={() => { if (approveTarget) handleApprove(approveTarget); setApproveTarget(null) }} disabled={busy}>{busy ? 'Please wait…' : 'Approve Seller'}</Button>
+          </>
+        }
+      >
+        <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--color-text-secondary)' }}>
+          Approving grants this seller access to their dashboard, orders, and payout eligibility.
+        </p>
+      </Modal>
     </div>
   )
 }

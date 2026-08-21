@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Product, Review } from '../../types'
+import { Button, Select, PageHeader, SkeletonTable, EmptyState } from '../../components/ui'
+import { Search, Check, EyeOff, Trash2 } from 'lucide-react'
 
 interface AdminReviewsProps {
   reviews: Review[]
@@ -20,6 +22,7 @@ export default function AdminReviews({ reviews, products, loading, searchTerm: e
   const [iFiltProduct, setIFiltProduct] = useState('')
   const filterProduct = eFiltProduct !== undefined ? eFiltProduct : iFiltProduct
   const setFilterProduct = eSetFiltProduct || setIFiltProduct
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
     return reviews.filter(review => {
@@ -35,34 +38,34 @@ export default function AdminReviews({ reviews, products, loading, searchTerm: e
   }, [reviews, products, searchTerm, filterProduct])
 
   return (
-    <div className="reviews-list-content">
+    <div className="page-content">
+      <PageHeader title="Reviews" subtitle={`${filtered.length} of ${reviews.length} reviews`} />
       <div className="search-filter-bar">
-        <input
-          type="text"
-          placeholder="Search reviews by customer, message or product..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        <select
-          value={filterProduct}
-          onChange={(e) => setFilterProduct(e.target.value)}
-          className="filter-select"
-        >
+        <div className="search-input-wrap">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Search reviews by customer, message or product..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <Select value={filterProduct} onChange={(e) => setFilterProduct(e.target.value)} aria-label="Filter product">
           <option value="">All Products</option>
           {products.map(p => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {loading && reviews.length === 0 ? (
-        <div className="empty-state"><h3>Loading reviews...</h3></div>
+        <SkeletonTable rows={4} cols={5} />
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <h3>{reviews.length === 0 ? 'No reviews yet' : 'No reviews match your search'}</h3>
-          <p>{reviews.length === 0 ? 'Reviews will appear here once customers submit them.' : 'Try adjusting your search or filters.'}</p>
-        </div>
+        <EmptyState
+          title={reviews.length === 0 ? 'No reviews yet' : 'No reviews match your search'}
+          message={reviews.length === 0 ? 'Reviews will appear here once customers submit them.' : 'Try adjusting your search or filters.'}
+        />
       ) : (
         <div className="reviews-table">
           <table>
@@ -104,24 +107,12 @@ export default function AdminReviews({ reviews, products, loading, searchTerm: e
                     </td>
                     <td className="actions-cell">
                       {review.status !== 'approved' && (
-                        <button
-                          onClick={() => onStatusUpdate(review.id, 'approved')}
-                          className="btn-edit"
-                          style={{ backgroundColor: '#16a34a' }}
-                        >
-                          Approve
-                        </button>
+                        <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => onStatusUpdate(review.id, 'approved')}>Approve</Button>
                       )}
                       {review.status !== 'hidden' && (
-                        <button
-                          onClick={() => onStatusUpdate(review.id, 'hidden')}
-                          className="btn-edit"
-                          style={{ backgroundColor: '#6b7280' }}
-                        >
-                          Hide
-                        </button>
+                        <Button variant="ghost" size="sm" icon={<EyeOff size={14} />} onClick={() => onStatusUpdate(review.id, 'hidden')}>Hide</Button>
                       )}
-                      <button onClick={() => onDelete(review.id)} className="btn-delete">Delete</button>
+                      <button onClick={() => setDeleteId(review.id)} className="btn-delete" title="Delete review"><Trash2 size={14} /></button>
                     </td>
                   </tr>
                 )
@@ -130,6 +121,24 @@ export default function AdminReviews({ reviews, products, loading, searchTerm: e
           </table>
         </div>
       )}
+
+      <div
+        className="modal-overlay"
+        style={{ display: deleteId ? 'flex' : 'none' }}
+        onClick={() => setDeleteId(null)}
+      >
+        <div className="modal-panel" style={{ maxWidth: 380 }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>Delete Review</h3>
+            <button className="btn-icon" onClick={() => setDeleteId(null)} aria-label="Close">✕</button>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--color-text-secondary)' }}>Permanently delete this review? This cannot be undone.</p>
+          <div className="modal-actions">
+            <Button variant="secondary" size="sm" onClick={() => setDeleteId(null)}>Cancel</Button>
+            <Button variant="danger-solid" size="sm" onClick={() => { if (deleteId) onDelete(deleteId); setDeleteId(null) }}>Delete</Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

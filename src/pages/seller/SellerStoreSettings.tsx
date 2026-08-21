@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { updateSeller, type Seller } from '../../services/marketplaceService'
 import { useAuth } from '../../context/AuthContext'
+import { Button, Input, Textarea, PageHeader, SectionCard } from '../../components/ui'
+import { toast } from '../../components/ui'
+import { Save } from 'lucide-react'
 
 interface Props {
   store: Seller
@@ -19,7 +22,6 @@ export default function SellerStoreSettings({ store, onSaved }: Props) {
     payment_reference: store.payment_reference || '',
   })
   const [saving, setSaving] = useState(false)
-  const [notice, setNotice] = useState('')
 
   const set = (k: keyof typeof form, v: string) => setForm(f => ({ ...f, [k]: v }))
 
@@ -37,56 +39,38 @@ export default function SellerStoreSettings({ store, onSaved }: Props) {
         payment_method: form.payment_method.trim(),
         payment_reference: form.payment_reference.trim(),
       })
-      if (!ok) throw new Error("Could not save settings.")
-      setNotice('Store settings saved successfully!')
+      if (!ok) throw new Error('Could not save settings.')
+      toast('Store settings saved successfully!', 'success')
       onSaved()
     } catch (err: any) {
-      setNotice(err.message || 'Could not save settings.')
+      toast(err.message || 'Could not save settings.', 'error')
     } finally {
       setSaving(false)
     }
   }
 
-  const field = (label: string, name: keyof typeof form, type = 'text', placeholder = '') => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>{label}</label>
-      <input
-        type={type}
-        value={form[name]}
-        onChange={e => set(name, e.target.value)}
-        placeholder={placeholder}
-        style={{ padding: 9, border: '1px solid #d1d5db', borderRadius: 8, fontSize: '0.9rem' }}
-      />
-    </div>
-  )
-
   return (
-    <div className="store-settings-content">
-      <div className="view-header-row">
-        <div>
-          <h3 className="section-title">Store Settings</h3>
-          <p className="section-subtitle">Update your store details and payout information.</p>
-        </div>
-      </div>
+    <div className="page-content">
+      <PageHeader
+        title="Store Settings"
+        subtitle="Update your store details and payout information."
+      />
 
-      {notice && (
-        <div className={`notification ${notice.includes('successfully') ? 'success' : 'error'}`}>
-          <span>{notice}</span>
-          <button onClick={() => setNotice('')}>&times;</button>
-        </div>
-      )}
-
-      <form onSubmit={save} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, maxWidth: 760 }}>
-        {field('Business Name', 'business_name')}
-        {field('Store Category', 'category', 'text', 'e.g. Fashion, Electronics')}
-        {field('Location', 'location', 'text', 'e.g. Tamale, Ghana')}
-        {field('Owner Phone', 'owner_phone', 'tel', 'For payout contact')}
-        {field('Description', 'description')}
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center', marginTop: 8 }}>
-          <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Save Settings'}</button>
-          <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>Payout details tell the admin how to settle your earnings.</span>
-        </div>
-      </form>
+      <SectionCard title="">
+        <form onSubmit={save} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, maxWidth: 760 }}>
+          <Input label="Business Name" required value={form.business_name} onChange={e => set('business_name', e.target.value)} />
+          <Input label="Store Category" value={form.category} placeholder="e.g. Fashion, Electronics" onChange={e => set('category', e.target.value)} />
+          <Input label="Location" value={form.location} placeholder="e.g. Tamale, Ghana" onChange={e => set('location', e.target.value)} />
+          <Input label="Owner Phone" type="tel" value={form.owner_phone} placeholder="For payout contact" onChange={e => set('owner_phone', e.target.value)} />
+          <div style={{ gridColumn: '1 / -1' }}>
+            <Textarea label="Description" rows={4} value={form.description} onChange={e => set('description', e.target.value)} />
+          </div>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12, alignItems: 'center', marginTop: 8 }}>
+            <Button type="submit" variant="primary" icon={<Save size={15} />} disabled={saving}>{saving ? 'Saving...' : 'Save Settings'}</Button>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>Payout details tell the admin how to settle your earnings.</span>
+          </div>
+        </form>
+      </SectionCard>
     </div>
   )
 }

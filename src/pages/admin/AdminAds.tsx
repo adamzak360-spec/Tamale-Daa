@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { getAds, createAd, updateAd, deleteAd, type AdBanner } from '../../services/marketplaceService'
+import { Button, Input, Select, StatusBadge, PageHeader, SkeletonTable, EmptyState, Modal } from '../../components/ui'
+import { toast } from '../../components/ui'
+import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react'
 
 export default function AdminAds() {
   const [ads, setAds] = useState<AdBanner[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<AdBanner | null>(null)
-  const [notice, setNotice] = useState('')
   const [form, setForm] = useState<Partial<AdBanner>>({ title: '', image_url: '', link_url: '', position: 'homepage', is_active: true })
+  const [deleteTarget, setDeleteTarget] = useState<AdBanner | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -17,93 +20,80 @@ export default function AdminAds() {
     setLoading(false)
   }
 
-  const showNotice = (msg: string) => {
-    setNotice(msg)
-    setTimeout(() => setNotice(''), 3000)
-  }
-
   const openNew = () => { setEditing(null); setShowForm(true); setForm({ title: '', image_url: '', link_url: '', position: 'homepage', is_active: true }) }
   const openEdit = (a: AdBanner) => { setEditing(a); setShowForm(true); setForm(a) }
 
   const save = async () => {
-    if (!form.title?.trim()) { showNotice('Please enter a title.'); return }
-    if (!form.image_url?.trim()) { showNotice('Please enter an image URL.'); return }
+    if (!form.title?.trim()) { toast('Please enter a title.', 'error'); return }
+    if (!form.image_url?.trim()) { toast('Please enter an image URL.', 'error'); return }
     const ok = editing ? await updateAd(editing.id, form) : await createAd(form)
-    if (ok) { showNotice(editing ? 'Ad updated.' : 'Ad created.'); setShowForm(false); load() }
-    else showNotice('Could not save ad.')
+    if (ok) { toast(editing ? 'Ad updated.' : 'Ad created.', 'success'); setShowForm(false); load() }
+    else toast('Could not save ad.', 'error')
   }
 
-  const remove = async (a: AdBanner) => {
-    if (!window.confirm(`Delete ad "${a.title}"?`)) return
-    const ok = await deleteAd(a.id)
-    if (ok) { showNotice('Ad deleted.'); load() }
-    else showNotice('Could not delete ad.')
+  const remove = async () => {
+    if (!deleteTarget) return
+    const ok = await deleteAd(deleteTarget.id)
+    if (ok) { toast('Ad deleted.', 'success'); setDeleteTarget(null); load() }
+    else toast('Could not delete ad.', 'error')
   }
 
   const toggleActive = async (a: AdBanner) => {
     const ok = await updateAd(a.id, { is_active: !a.is_active })
-    if (ok) showNotice(a.is_active ? 'Ad deactivated.' : 'Ad activated.'); load()
+    if (ok) toast(a.is_active ? 'Ad deactivated.' : 'Ad activated.', 'success'); load()
   }
 
   return (
-    <div className="ads-content">
-      {notice && <div className={`notification ${notice.includes('Could not') ? 'error' : 'success'}`}><span>{notice}</span></div>}
-
-      <div className="view-header-row">
-        <div>
-          <h3 className="section-title">Ads & Banners</h3>
-          <p className="section-subtitle">Manage promotional banners shown across the site.</p>
-        </div>
-        <button onClick={openNew} className="btn-primary">+ New Banner</button>
-      </div>
+    <div className="page-content">
+      <PageHeader
+        title="Ads & Banners"
+        subtitle="Manage promotional banners shown across the site."
+        actions={<Button variant="primary" size="sm" onClick={openNew} icon={<Plus size={15} />}>+ New Banner</Button>}
+      />
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal-content" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{editing ? 'Edit Banner' : 'New Banner'}</h3>
-              <button className="close-modal" onClick={() => setShowForm(false)}>&times;</button>
-            </div>
-            <div className="form-grid" style={{ display: 'grid', gap: 12, padding: '4px 4px 8px' }}>
-              <div>
-                <label>Title</label>
-                <input type="text" value={form.title || ''} onChange={e => setForm({ ...form, title: e.target.value })} style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 8 }} />
-              </div>
-              <div>
-                <label>Image URL</label>
-                <input type="text" value={form.image_url || ''} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 8 }} />
-              </div>
-              <div>
-                <label>Click-through link (optional)</label>
-                <input type="text" value={form.link_url || ''} onChange={e => setForm({ ...form, link_url: e.target.value })} placeholder="https://..." style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 8 }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label>Position</label>
-                  <select value={form.position || 'homepage'} onChange={e => setForm({ ...form, position: e.target.value as AdBanner['position'] })} style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 8 }}>
-                    <option value="homepage">Homepage</option>
-                    <option value="sidebar">Sidebar</option>
-                    <option value="product">Product Pages</option>
-                  </select>
-                </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, alignSelf: 'end' }}>
-                  <input type="checkbox" checked={!!form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} />
-                  Active
-                </label>
-              </div>
-              <button onClick={save} className="btn-primary" style={{ marginTop: 4 }}>Save Banner</button>
+        <Modal
+          open={showForm}
+          onClose={() => setShowForm(false)}
+          title={editing ? 'Edit Banner' : 'New Banner'}
+          actions={
+            <>
+              <Button variant="secondary" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button variant="primary" size="sm" onClick={save}>Save Banner</Button>
+            </>
+          }
+        >
+          <div className="form-grid">
+            <Input label="Title" required value={form.title || ''} onChange={e => setForm({ ...form, title: e.target.value })} />
+            <Input label="Image URL" required value={form.image_url || ''} placeholder="https://..." onChange={e => setForm({ ...form, image_url: e.target.value })} />
+            <Input label="Click-through link (optional)" value={form.link_url || ''} placeholder="https://..." onChange={e => setForm({ ...form, link_url: e.target.value })} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <Select
+                label="Position"
+                value={form.position || 'homepage'}
+                onChange={e => setForm({ ...form, position: e.target.value as AdBanner['position'] })}
+              >
+                <option value="homepage">Homepage</option>
+                <option value="sidebar">Sidebar</option>
+                <option value="product">Product Pages</option>
+              </Select>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, alignSelf: 'end', fontSize: '0.9rem' }}>
+                <input type="checkbox" checked={!!form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} />
+                Active
+              </label>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {loading ? (
-        <div className="empty-state"><h3>Loading banners...</h3></div>
+        <SkeletonTable rows={4} cols={4} />
       ) : ads.length === 0 ? (
-        <div className="empty-state">
-          <h3>No banners yet</h3>
-          <p>Add promotional banners to feature across the site.</p>
-        </div>
+        <EmptyState
+          title="No banners yet"
+          message="Add promotional banners to feature across the site."
+          action={{ label: '+ New Banner', onClick: openNew }}
+        />
       ) : (
         <div className="products-table">
           <table>
@@ -123,15 +113,15 @@ export default function AdminAds() {
                     </div>
                   </td>
                   <td data-label="Actions" style={{ textTransform: 'capitalize' }}>{a.position}</td>
-                  <td data-label="Actions">
-                    <span className="status-badge" style={{ background: a.is_active ? '#f0fdf4' : '#f3f4f6', color: a.is_active ? '#15803d' : '#4b5563' }}>
+                  <td data-label="Active">
+                    <StatusBadge status={a.is_active ? 'active' : 'inactive'}>
                       {a.is_active ? 'Active' : 'Inactive'}
-                    </span>
+                    </StatusBadge>
                   </td>
                   <td data-label="Actions" className="actions-cell">
-                    <button onClick={() => toggleActive(a)} className="btn-edit">{a.is_active ? 'Deactivate' : 'Activate'}</button>
-                    <button onClick={() => openEdit(a)} className="btn-edit">Edit</button>
-                    <button onClick={() => remove(a)} className="btn-delete">Delete</button>
+                    <Button variant="ghost" size="sm" icon={a.is_active ? <EyeOff size={14} /> : <Eye size={14} />} onClick={() => toggleActive(a)}>{a.is_active ? 'Deactivate' : 'Activate'}</Button>
+                    <button onClick={() => openEdit(a)} className="btn-edit" title="Edit"><Pencil size={14} /></button>
+                    <button onClick={() => setDeleteTarget(a)} className="btn-delete" title="Delete"><Trash2 size={14} /></button>
                   </td>
                 </tr>
               ))}
@@ -139,6 +129,22 @@ export default function AdminAds() {
           </table>
         </div>
       )}
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Banner"
+        actions={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="danger-solid" size="sm" onClick={remove}>Delete</Button>
+          </>
+        }
+      >
+        <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--color-text-secondary)' }}>
+          Delete ad "{deleteTarget?.title}"? This cannot be undone.
+        </p>
+      </Modal>
     </div>
   )
 }
