@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import type { Product } from '../../types'
 import { formatCurrency } from '../../utils/currency'
-import { Button, Select, StatusBadge, PageHeader, SkeletonTable, EmptyState, Modal } from '../../components/ui'
-import { Search, Pencil, Trash2 } from 'lucide-react'
+import { Button, Select, StatusBadge, PageHeader, DataTable, TableToolbar, Modal } from '../../components/ui'
+import type { DataTableColumn } from '../../components/ui'
+import { Search, Pencil, Trash2, Package } from 'lucide-react'
 
 interface AdminProductsProps {
   products: Product[]
@@ -38,6 +39,43 @@ export default function AdminProducts({ products, loading, searchTerm: externalS
     })
   }, [products, searchTerm, filterCategory])
 
+  const statusText = (p: Product): 'active' | 'inactive' | 'out-of-stock' => p.status
+
+  const columns: DataTableColumn<Product>[] = [
+    {
+      key: 'product', header: 'Product', minWidth: '220px',
+      cell: p => (
+        <div className="dt-product">
+          <span className="dt-thumb">
+            {p.image_url ? <img src={p.image_url} alt={p.name} /> : <Package size={15} style={{ color: 'var(--color-text-muted)' }} />}
+          </span>
+          <span className="dt-product-name" title={p.name}>{p.name}</span>
+          {p.sku && <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>{p.sku}</span>}
+        </div>
+      ),
+    },
+    { key: 'category', header: 'Category', width: '130px', cell: p => p.category },
+    { key: 'price', header: 'Price', width: '100px', align: 'right', cell: p => <span className="dt-amount">{formatCurrency(p.price)}</span> },
+    { key: 'stock', header: 'Stock', width: '80px', align: 'center', cell: p => p.stock_quantity },
+    {
+      key: 'status', header: 'Status', width: '130px', align: 'center',
+      cell: p => (
+        <StatusBadge status={statusText(p)}>
+          {p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}
+        </StatusBadge>
+      ),
+    },
+    {
+      key: 'actions', header: 'Actions', width: '110px', sticky: 'right', align: 'right',
+      cell: p => (
+        <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'flex-end' }}>
+          <Button variant="ghost" size="sm" icon={<Pencil size={14} />} onClick={() => onEdit(p)}>Edit</Button>
+          <Button variant="ghost" size="sm" icon={<Trash2 size={14} />} onClick={() => setConfirmTarget({ id: p.id, name: p.name })} />
+        </div>
+      ),
+    },
+  ]
+
   return (
     <div className="page-content">
       <PageHeader title="Products" subtitle={`${filtered.length} of ${products.length} products`} actions={
@@ -46,75 +84,34 @@ export default function AdminProducts({ products, loading, searchTerm: externalS
           <Button variant="primary" size="sm" onClick={onAddProduct} icon={<Search size={15} />}>+ Add Product</Button>
         </>
       } />
-      <div className="search-filter-bar">
-        <div className="search-input-wrap">
-          <Search size={16} />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-        <Select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} aria-label="Filter category">
+      <TableToolbar>
+        <input
+          className="form-input"
+          type="text"
+          placeholder="Search products…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          aria-label="Search products"
+          style={{ minWidth: '220px' }}
+        />
+        <Select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} aria-label="Filter category" style={{ minWidth: '170px' }}>
           <option value="">All Categories</option>
           {categories.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </Select>
-      </div>
+      </TableToolbar>
 
-      {loading && products.length === 0 ? (
-        <SkeletonTable rows={5} cols={6} />
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          title={products.length === 0 ? 'No products yet' : 'No products match your search'}
-          message={products.length === 0 ? 'Start by adding your first product to the marketplace.' : 'Try adjusting your search or filters.'}
-        />
-      ) : (
-        <div className="products-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(product => (
-                <tr key={product.id}>
-                  <td data-label="Image" className="product-image-cell">
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="product-thumb" />
-                    ) : (
-                      <div className="product-thumb-placeholder">No image</div>
-                    )}
-                  </td>
-                  <td data-label="Name"><span style={{ fontWeight: 600 }}>{product.name}</span></td>
-                  <td data-label="Category">{product.category}</td>
-                  <td data-label="Price">{formatCurrency(product.price)}</td>
-                  <td data-label="Stock">{product.stock_quantity}</td>
-                  <td data-label="Status">
-                    <StatusBadge status={product.status}>
-                      {product.status === 'active' ? 'Active' : product.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}
-                    </StatusBadge>
-                  </td>
-                  <td data-label="Actions" className="actions-cell">
-                    <button onClick={() => onEdit(product)} className="btn-edit" title="Edit product"><Pencil size={14} /></button>
-                    <button onClick={() => setConfirmTarget({ id: product.id, name: product.name })} className="btn-delete" title="Delete product"><Trash2 size={14} /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={filtered}
+        columns={columns}
+        loading={loading && products.length === 0}
+        emptyTitle={products.length === 0 ? 'No products yet' : 'No products match your search'}
+        emptyMessage={products.length === 0 ? 'Start by adding your first product to the marketplace.' : 'Try adjusting your search or filters.'}
+        stickyHeader
+        caption={`${filtered.length} of ${products.length} products`}
+        rowKey={p => p.id}
+      />
 
       <Modal
         open={!!confirmTarget}

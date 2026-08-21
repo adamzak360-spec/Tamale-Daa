@@ -4,7 +4,7 @@ import {
   getPayouts, createPayout, updatePayout, deletePayout,
   getSellers, type Payout, type Seller
 } from '../../services/marketplaceService'
-import { Button, Select, Input, StatusBadge, PageHeader, SkeletonTable, EmptyState, Modal } from '../../components/ui'
+import { Button, Select, Input, StatusBadge, PageHeader, DataTable, TableToolbar, Modal } from '../../components/ui'
 import { toast } from '../../components/ui'
 import { Wallet, Plus, Check, Pencil, Trash2 } from 'lucide-react'
 
@@ -100,42 +100,64 @@ export default function AdminPayouts() {
         </Modal>
       )}
 
-      {loading ? (
-        <SkeletonTable rows={4} cols={6} />
-      ) : payouts.length === 0 ? (
-        <EmptyState
-          title="No payouts recorded"
-          message="Create a payout when you settle a seller's earnings."
-          action={{ label: '+ New Payout', onClick: openNew }}
-        />
-      ) : (
-        <div className="products-table">
-          <table>
-            <thead>
-              <tr><th>Seller</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th><th>Date</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-              {payouts.map(p => (
-                <tr key={p.id}>
-                  <td data-label="Seller" style={{ fontWeight: 600 }}>{sellerName(p.seller_id)}</td>
-                  <td data-label="Status">{formatCurrency(p.amount)}</td>
-                  <td data-label="Amount">{p.payment_method || '—'}</td>
-                  <td data-label="Actions" style={{ fontSize: '0.85rem', color: '#4b5563' }}>{p.payment_reference || '—'}</td>
-                  <td data-label="Status">
-                    <StatusBadge status={p.status}>{p.status}</StatusBadge>
-                  </td>
-                  <td data-label="Status">{new Date(p.created_at).toLocaleDateString()}</td>
-                  <td data-label="Actions" className="actions-cell">
-                    {p.status !== 'paid' && <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => markPaid(p)}>Mark Paid</Button>}
-                    <button onClick={() => openEdit(p)} className="btn-edit" title="Edit payout"><Pencil size={14} /></button>
-                    <button onClick={() => setDeleteTarget(p)} className="btn-delete" title="Delete payout"><Trash2 size={14} /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <TableToolbar>
+        <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginLeft: '0.25rem' }}>
+          {payouts.length} payout{payouts.length !== 1 ? 's' : ''} · pending settlements {formatCurrency(pendingDelivered)}
+        </span>
+      </TableToolbar>
+
+      <DataTable<Payout>
+        data={payouts}
+        loading={loading}
+        emptyTitle="No payouts recorded"
+        emptyMessage="Create a payout when you settle a seller's earnings."
+        emptyAction={{ label: '+ New Payout', onClick: openNew }}
+        stickyHeader
+        caption={`${payouts.length} payout${payouts.length !== 1 ? 's' : ''}`}
+        rowKey={p => p.id}
+        columns={[
+          {
+            key: 'seller', header: 'Seller', minWidth: '190px',
+            cell: p => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                <span className="dt-avatar">{sellerName(p.seller_id).trim().charAt(0).toUpperCase()}</span>
+                <span style={{ fontWeight: 600 }}>{sellerName(p.seller_id)}</span>
+              </div>
+            ),
+          },
+          {
+            key: 'amount', header: 'Amount', width: '115px', align: 'right',
+            cell: p => <span className="dt-amount">{formatCurrency(p.amount)}</span>,
+          },
+          {
+            key: 'method', header: 'Method', width: '140px',
+            cell: p => (
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'capitalize' }}>{p.payment_method || '—'}</div>
+                {p.payment_reference && <div style={{ fontSize: '0.76rem', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>{p.payment_reference}</div>}
+              </div>
+            ),
+          },
+          {
+            key: 'status', header: 'Status', width: '115px', align: 'center',
+            cell: p => <StatusBadge status={p.status}>{p.status}</StatusBadge>,
+          },
+          {
+            key: 'date', header: 'Created', width: '115px',
+            cell: p => new Date(p.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }),
+          },
+          {
+            key: 'actions', header: 'Actions', width: '165px', sticky: 'right', align: 'right',
+            cell: p => (
+              <div style={{ display: 'flex', gap: '0.2rem', justifyContent: 'flex-end' }}>
+                {p.status !== 'paid' && <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => markPaid(p)}>Mark Paid</Button>}
+                <Button variant="ghost" size="sm" icon={<Pencil size={14} />} onClick={() => openEdit(p)} />
+                <Button variant="ghost" size="sm" icon={<Trash2 size={14} />} onClick={() => setDeleteTarget(p)} />
+              </div>
+            ),
+          },
+        ]}
+      />
 
       <Modal
         open={!!deleteTarget}

@@ -3,7 +3,7 @@ import type { Product, DashboardStats, Order } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { useAuth } from '../../context/AuthContext'
 import { getSellers } from '../../services/marketplaceService'
-import { KpiCard, SkeletonTable, StatusBadge, Button, EmptyState } from '../../components/ui'
+import { KpiCard, SkeletonTable, StatusBadge, Button, EmptyState, DataTable } from '../../components/ui'
 import { ShoppingBag, Package, Wallet, Store, Users as UsersIcon } from 'lucide-react'
 
 interface AdminDashboardProps {
@@ -112,42 +112,28 @@ export default function AdminDashboard(props: AdminDashboardProps) {
             <Button variant="primary" onClick={onAddProduct}>Add Product</Button>
           </div>
         ) : (
-          <div className="products-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Stock</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.slice(0, 5).map(product => (
-                  <tr key={product.id}>
-                    <td className="product-image-cell">
-                      {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="product-thumb" />
-                      ) : (
-                        <div className="product-thumb-placeholder">No image</div>
-                      )}
-                    </td>
-                    <td>{product.name}</td>
-                    <td>{product.category}</td>
-                    <td>{formatCurrency(product.price)}</td>
-                    <td>{product.stock_quantity}</td>
-                    <td>
-                      <StatusBadge status={product.status}>
-                        {product.status === 'active' ? 'Active' : product.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}
-                      </StatusBadge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<Product>
+            data={products.slice(0, 5)}
+            loading={loading}
+            emptyTitle="No products yet"
+            emptyMessage="Start by adding your first product."
+            caption={`${products.length} product${products.length !== 1 ? 's' : ''} total`}
+            rowKey={p => p.id}
+            columns={[
+              {
+                key: 'image', header: 'Image', width: '70px',
+                cell: p => p.image_url ? <img src={p.image_url} alt={p.name} className="product-thumb" /> : <div className="product-thumb-placeholder">No image</div>,
+              },
+              { key: 'name', header: 'Name', minWidth: '180px', cell: p => <span style={{ fontWeight: 600 }}>{p.name}</span> },
+              { key: 'category', header: 'Category', minWidth: '130px', cell: p => p.category },
+              { key: 'price', header: 'Price', width: '110px', align: 'right', cell: p => <span className="dt-amount">{formatCurrency(p.price)}</span> },
+              { key: 'stock', header: 'Stock', width: '80px', align: 'center', cell: p => p.stock_quantity },
+              {
+                key: 'status', header: 'Status', width: '140px', align: 'center',
+                cell: p => <StatusBadge status={p.status}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</StatusBadge>,
+              },
+            ]}
+          />
         )}
       </div>
     </div>

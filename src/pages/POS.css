@@ -7,7 +7,7 @@
 }
 
 .pos-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0B2F63 0%, #12468F 55%, #00B8A9 100%);
   color: white;
   padding: 30px;
   border-radius: 10px;
@@ -88,14 +88,14 @@
 }
 
 .category-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #00B8A9;
+  color: #009E92;
 }
 
 .category-btn.active {
-  background: #667eea;
+  background: #0B2F63;
   color: white;
-  border-color: #667eea;
+  border-color: #0B2F63;
 }
 
 .pos-loading {
@@ -128,8 +128,8 @@
 }
 
 .pos-product-card:hover {
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(0, 184, 169, 0.15);
+  border-color: #00B8A9;
   transform: translateY(-2px);
 }
 
@@ -154,7 +154,7 @@
 .pos-price {
   font-size: 14px;
   font-weight: 700;
-  color: #667eea;
+  color: #009E92;
   margin: 5px 0;
 }
 
@@ -167,7 +167,7 @@
 .pos-add-btn {
   width: 100%;
   padding: 8px;
-  background: #667eea;
+  background: #0B2F63;
   color: white;
   border: none;
   border-radius: 6px;
@@ -182,7 +182,7 @@
 }
 
 .pos-add-btn:hover:not(:disabled) {
-  background: #764ba2;
+  background: #12468F;
   transform: scale(1.05);
 }
 
@@ -240,7 +240,7 @@
 }
 
 .pos-customer-info input:focus {
-  border-color: #667eea;
+  border-color: #00B8A9;
 }
 
 .pos-cart-items {
@@ -286,7 +286,7 @@
 
 .pos-item-info p {
   margin: 3px 0 0 0;
-  color: #667eea;
+  color: #009E92;
   font-weight: 600;
 }
 
@@ -304,7 +304,7 @@
   border: none;
   padding: 4px 6px;
   cursor: pointer;
-  color: #667eea;
+  color: #0B2F63;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -394,12 +394,12 @@
 
 .pos-payment-section select:focus,
 .pos-payment-section input:focus {
-  border-color: #667eea;
+  border-color: #00B8A9;
 }
 
 .pos-change {
-  background: #f0f8ff;
-  color: #667eea;
+  background: #F0FBF9;
+  color: #009E92;
   padding: 8px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -410,7 +410,7 @@
 .pos-checkout-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00B8A9 0%, #009E92 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -422,7 +422,7 @@
 
 .pos-checkout-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 184, 169, 0.4);
 }
 
 .pos-checkout-btn:disabled {

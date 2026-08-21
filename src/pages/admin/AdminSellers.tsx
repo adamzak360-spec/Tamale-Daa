@@ -1,9 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { getSellers, approveSeller, rejectSeller, type Seller } from '../../services/marketplaceService'
-import { Button, StatusBadge, PageHeader, SkeletonTable, EmptyState, Modal, Input } from '../../components/ui'
+import { Button, StatusBadge, PageHeader, DataTable, TableToolbar, PersonCell, RowActions, Modal, Input } from '../../components/ui'
+import type { DataTableColumn } from '../../components/ui'
 import { toast } from '../../components/ui'
-import { Check, X } from 'lucide-react'
+import { Check, X, Store } from 'lucide-react'
+
+type SellerStatus = 'pending' | 'approved' | 'rejected' | 'suspended'
+
+const STATUS_FILTERS: { value: string; label: string }[] = [
+  { value: '', label: 'All statuses' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'rejected', label: 'Rejected' },
+  { value: 'suspended', label: 'Suspended' },
+]
 
 export default function AdminSellers() {
   const [sellers, setSellers] = useState<Seller[]>([])
@@ -12,6 +23,8 @@ export default function AdminSellers() {
   const [approveTarget, setApproveTarget] = useState<Seller | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [busy, setBusy] = useState(false)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   useEffect(() => { load() }, [])
 
@@ -20,6 +33,21 @@ export default function AdminSellers() {
     setSellers(await getSellers())
     setLoading(false)
   }
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return sellers.filter(s => {
+      if (statusFilter && s.status !== statusFilter) return false
+      if (!q) return true
+      return (
+        s.business_name.toLowerCase().includes(q) ||
+        (s.owner_name || '').toLowerCase().includes(q) ||
+        (s.owner_email || '').toLowerCase().includes(q) ||
+        (s.owner_phone || '').toLowerCase().includes(q) ||
+        (s.location || '').toLowerCase().includes(q)
+      )
+    })
+  }, [sellers, search, statusFilter])
 
   const handleApprove = async (s: Seller) => {
     setBusy(true)
@@ -45,6 +73,86 @@ export default function AdminSellers() {
     } else toast('Could not reject seller.', 'error')
   }
 
+
+  const columns: DataTableColumn<Seller>[] = [
+    {
+      key: 'seller', header: 'Seller', minWidth: '210px',
+      cell: s => (
+        <div className="dt-product">
+          <span className="dt-avatar">
+            {s.logo_url ? <img src={s.logo_url} alt={s.business_name} /> : <Store size={15} />}
+          </span>
+          <PersonCell
+            primary={s.business_name}
+            secondary={s.description ? s.description.slice(0, 60) : undefined}
+          />
+        </div>
+      ),
+    },
+    {
+      key: 'contact', header: 'Contact', minWidth: '180px',
+      cell: s => (
+        <PersonCell
+          primary={s.owner_name || '—'}
+          secondary={s.owner_email || undefined}
+          muted={s.owner_phone || undefined}
+        />
+      ),
+    },
+    {
+      key: 'location', header: 'Location', width: '140px',
+      cell: s => s.location || '—',
+    },
+    {
+      key: 'payout', header: 'Payout', minWidth: '150px',
+      cell: s => (
+        <div>
+          <div style={{ fontWeight: 600, textTransform: 'capitalize', fontSize: '0.85rem' }}>{s.payment_method || '—'}</div>
+          {s.payment_reference ? (() => {
+            try {
+              const details = JSON.parse(s.payment_reference)
+              if (details && typeof details === 'object' && !Array.isArray(details)) {
+                const first = Object.values(details)[0]
+                return first ? <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>{String(first)}</div> : null
+              }
+              return <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>{s.payment_reference}</div>
+            } catch {
+              return <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>{s.payment_reference}</div>
+            }
+          })() : null}
+        </div>
+      ),
+    },
+    {
+      key: 'status', header: 'Status', width: '115px', align: 'center',
+      cell: s => <StatusBadge status={s.status as SellerStatus}>{s.status}</StatusBadge>,
+    },
+    {
+      key: 'registered', header: 'Registered', width: '110px',
+      cell: s => new Date(s.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }),
+    },
+    {
+      key: 'actions', header: 'Actions', width: '150px', sticky: 'right', align: 'right',
+      cell: s => (
+        <RowActions>
+          {s.status === 'pending' && (
+            <>
+              <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => setApproveTarget(s)}>Approve</Button>
+              <Button variant="ghost" size="sm" icon={<X size={14} />} onClick={() => { setRejectTarget(s); setRejectReason('') }}>Reject</Button>
+            </>
+          )}
+          {s.status === 'approved' && (
+            <Button variant="ghost" size="sm" icon={<X size={14} />} onClick={() => { setRejectTarget(s); setRejectReason('') }}>Suspend</Button>
+          )}
+          {s.status === 'rejected' && (
+            <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => setApproveTarget(s)}>Approve</Button>
+          )}
+          {s.admin_note && <span title={s.admin_note} style={{ fontSize: '0.72rem', color: 'var(--color-error)', marginLeft: '0.3rem' }}>Note</span>}
+        </RowActions>
+      ),
+    },
+  ]
+
   return (
     <div className="page-content">
       <PageHeader
@@ -52,88 +160,30 @@ export default function AdminSellers() {
         subtitle={`Review applications, approve sellers, and manage payouts eligibility. ${sellers.length} registered.`}
       />
 
-      {loading ? (
-        <SkeletonTable rows={4} cols={6} />
-      ) : sellers.length === 0 ? (
-        <EmptyState
-          title="No sellers yet"
-          message="Seller applications will appear here for your review."
+      <TableToolbar>
+        <input
+          className="form-input"
+          placeholder="Search sellers, emails, phone…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search sellers"
+          style={{ minWidth: '220px' }}
         />
-      ) : (
-        <div className="products-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Store</th>
-                <th>Owner</th>
-                <th>Location</th>
-                <th>Payment</th>
-                <th>Status</th>
-                <th>Applied</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sellers.map(s => (
-                <tr key={s.id}>
-                  <td data-label="Store">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {s.logo_url && <img src={s.logo_url} alt={s.business_name} className="product-thumb" />}
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{s.business_name}</div>
-                        {s.description && <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: 260 }}>{s.description.slice(0, 80)}</div>}
-                      </div>
-                    </div>
-                  </td>
-                  <td data-label="Status">
-                    <div>{s.owner_name || '—'}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.owner_email}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.owner_phone}</div>
-                  </td>
-                  <td data-label="Applied">{s.location || '—'}</td>
-                  <td data-label="Payment">
-                    <div style={{ textTransform: 'capitalize' }}>{s.payment_method || '—'}</div>
-                    {s.payment_reference ? (() => {
-                      try {
-                        const details = JSON.parse(s.payment_reference)
-                        if (details && typeof details === 'object' && !Array.isArray(details)) {
-                          return Object.entries(details).map(([k, v]) => (
-                            <div key={k} style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                              <span style={{ fontWeight: 600, textTransform: 'capitalize' }}>{k.replace(/_/g, ' ')}:</span> {String(v)}
-                            </div>
-                          ))
-                        }
-                        return <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.payment_reference}</div>
-                      } catch {
-                        return <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.payment_reference}</div>
-                      }
-                    })() : null}
-                  </td>
-                  <td data-label="Status">
-                    <StatusBadge status={s.status}>{s.status}</StatusBadge>
-                  </td>
-                  <td data-label="Location">{new Date(s.created_at).toLocaleDateString()}</td>
-                  <td data-label="Actions" className="actions-cell">
-                    {s.status === 'pending' && (
-                      <>
-                        <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => setApproveTarget(s)}>Approve</Button>
-                        <Button variant="ghost" size="sm" icon={<X size={14} />} onClick={() => { setRejectTarget(s); setRejectReason('') }}>Reject</Button>
-                      </>
-                    )}
-                    {s.status === 'approved' && (
-                      <Button variant="ghost" size="sm" icon={<X size={14} />} onClick={() => { setRejectTarget(s); setRejectReason('') }}>Suspend</Button>
-                    )}
-                    {s.status === 'rejected' && (
-                      <Button variant="ghost" size="sm" icon={<Check size={14} />} onClick={() => setApproveTarget(s)}>Approve</Button>
-                    )}
-                    {s.admin_note && <div title={s.admin_note} style={{ fontSize: '0.75rem', color: '#dc2626' }}>Note set</div>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label="Filter by status" style={{ minWidth: '150px' }}>
+          {STATUS_FILTERS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+        </select>
+      </TableToolbar>
+
+      <DataTable
+        data={filtered}
+        columns={columns}
+        loading={loading}
+        emptyTitle={search || statusFilter ? 'No matching sellers' : 'No sellers yet'}
+        emptyMessage={search || statusFilter ? 'Try adjusting your search or filters.' : 'Seller applications will appear here for your review.'}
+        stickyHeader
+        caption={`${filtered.length} of ${sellers.length} sellers`}
+        rowKey={s => s.id}
+      />
 
       <Modal
         open={!!rejectTarget}

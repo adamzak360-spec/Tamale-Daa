@@ -5,9 +5,9 @@ import {
   exportOrdersCSV,
   exportCustomersCSV,
 } from '../../services/adminAnalyticsService'
-import { Button, Select, StatusBadge, PageHeader, SkeletonTable, EmptyState } from '../../components/ui'
+import { Button, Select, StatusBadge, PageHeader, DataTable, TableToolbar, PersonCell } from '../../components/ui'
 import { toast } from '../../components/ui'
-import { Search, FileDown, Users } from 'lucide-react'
+import { FileDown, Users } from 'lucide-react'
 
 interface AdminOrdersProps {
   orders: Order[]
@@ -89,18 +89,17 @@ export default function AdminOrders({ orders, loading, searchTerm: eSearch, onSe
           <Button variant="outline" size="sm" onClick={() => { if (onExportCustomers) onExportCustomers(); else exportCustomers() }} icon={<Users size={15} />}>Export Customers</Button>
         </>
       } />
-      <div className="search-filter-bar">
-        <div className="search-input-wrap">
-          <Search size={16} />
-          <input
-            type="text"
-            placeholder="Search orders by customer or ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter status">
+      <TableToolbar>
+        <input
+          className="form-input"
+          type="text"
+          placeholder="Search orders by customer or ID…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          aria-label="Search orders"
+          style={{ minWidth: '230px' }}
+        />
+        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter status" style={{ minWidth: '165px' }}>
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
@@ -110,74 +109,71 @@ export default function AdminOrders({ orders, loading, searchTerm: eSearch, onSe
           <option value="delivered">Delivered</option>
           <option value="cancelled">Cancelled</option>
         </Select>
-        <Select value={filterSource} onChange={(e) => setFilterSource(e.target.value)} aria-label="Filter source">
+        <Select value={filterSource} onChange={(e) => setFilterSource(e.target.value)} aria-label="Filter source" style={{ minWidth: '130px' }}>
           <option value="">All Sources</option>
           <option value="ONLINE">Online</option>
           <option value="POS">POS</option>
         </Select>
-      </div>
+      </TableToolbar>
 
-      {loading && orders.length === 0 ? (
-        <SkeletonTable rows={5} cols={5} />
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          title={orders.length === 0 ? 'No orders yet' : 'No orders match your search'}
-          message={orders.length === 0 ? 'Orders will appear here once customers place them.' : 'Try adjusting your search or filters.'}
-        />
-      ) : (
-        <div className="orders-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(order => (
-                <tr key={order.id}>
-                  <td data-label="Order ID" className="order-id-cell">
-                    <span className="order-id" title={order.id}>
-                      {order.id?.substring(0, 8)}...
-                    </span>
-                  </td>
-                  <td data-label="Actions">
-                    <div className="customer-info">
-                      <div className="customer-name">{order.customer_name}</div>
-                      <div className="customer-email">{order.customer_email}</div>
-                    </div>
-                  </td>
-                  <td data-label="Status">{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-                  <td data-label="Quantity">{formatCurrency(order.total)}</td>
-                  <td data-label="Status">
-                    <StatusBadge status={order.status as any}>{order.status.replace('-', ' ')}</StatusBadge>
-                  </td>
-                  <td data-label="Status" className="actions-cell">
-                    <select
-                      value={order.status}
-                      onChange={(e) => onStatusChange(order.id!, e.target.value as Order['status'])}
-                      className="status-select"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="processing">Processing</option>
-                      <option value="ready-for-pickup">Ready for Pickup</option>
-                      <option value="out-for-delivery">Out for Delivery</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                    <button onClick={() => onViewOrder(order)} className="btn-view" title="View order details">View Details</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        data={filtered}
+        loading={loading && orders.length === 0}
+        emptyTitle={orders.length === 0 ? 'No orders yet' : 'No orders match your search'}
+        emptyMessage={orders.length === 0 ? 'Orders will appear here once customers place them.' : 'Try adjusting your search or filters.'}
+        stickyHeader
+        caption={`${filtered.length} of ${orders.length} orders`}
+        rowKey={o => o.id || ''}
+        columns={[
+          {
+            key: 'order-id', header: 'Order ID', width: '110px',
+            cell: o => <span style={{ fontFamily: 'monospace', fontSize: '0.82rem', color: 'var(--color-navy)', fontWeight: 600 }} title={o.id}>{(o.id || '').substring(0, 8)}…</span>,
+          },
+          {
+            key: 'customer', header: 'Customer', minWidth: '190px',
+            cell: o => <PersonCell primary={o.customer_name || '—'} secondary={o.customer_email || undefined} muted={o.source === 'POS' ? 'POS sale' : 'Online'} />,
+          },
+          {
+            key: 'source', header: 'Source', width: '90px', align: 'center',
+            cell: o => <StatusBadge status={o.source === 'POS' ? 'inactive' : 'active'}>{o.source === 'POS' ? 'POS' : 'Online'}</StatusBadge>,
+          },
+          {
+            key: 'date', header: 'Date', width: '110px',
+            cell: o => o.created_at ? new Date(o.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A',
+          },
+          {
+            key: 'total', header: 'Amount', width: '105px', align: 'right',
+            cell: o => <span className="dt-amount">{formatCurrency(o.total)}</span>,
+          },
+          {
+            key: 'status', header: 'Status', width: '150px', align: 'center',
+            cell: o => <StatusBadge status={o.status as any}>{o.status.replace('-', ' ')}</StatusBadge>,
+          },
+          {
+            key: 'actions', header: 'Actions', width: '210px', sticky: 'right', align: 'right', wrap: true,
+            cell: o => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
+                <select
+                  value={o.status}
+                  onChange={(e) => onStatusChange(o.id!, e.target.value as Order['status'])}
+                  className="form-select dt-status-select"
+                  aria-label="Change order status"
+                  style={{ minWidth: '110px', minHeight: '32px', fontSize: '0.78rem', padding: '0 1.6rem 0 0.5rem' }}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="processing">Processing</option>
+                  <option value="ready-for-pickup">Ready for Pickup</option>
+                  <option value="out-for-delivery">Out for Delivery</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <Button variant="ghost" size="sm" onClick={() => onViewOrder(o)}>View</Button>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { lazy, Suspense } from 'react'
 import AdminShell, { SidebarSection } from '../components/AdminShell'
 import AdminVisibility from './admin/AdminVisibility'
-import { Button, KpiCard, StatusBadge, SkeletonTable, EmptyState } from '../components/ui'
+import { Button, KpiCard, StatusBadge, SkeletonTable, EmptyState, DataTable } from '../components/ui'
 import { formatCurrency } from '../utils/currency'
 import { Package, ShoppingBag, Wallet, BellRing } from 'lucide-react'
 import {
@@ -216,29 +216,33 @@ export default function SellerDashboard() {
               </div>
               <button onClick={() => setView('add')} className="btn-primary">+ Add Product</button>
             </div>
-            {products.length === 0 ? (
-              <div className="empty-state">
-                <h3>No products yet</h3>
-                <p>Add your first product to start selling.</p>
-              </div>
-            ) : (
-              <div className="products-table">
-                <table>
-                  <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead>
-                  <tbody>
-                    {products.map(p => (
-                      <tr key={p.id}>
-                        <td data-label="Product"><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>{p.image_url && <img src={p.image_url} alt={p.name} className="product-thumb" />}<span style={{ fontWeight: 600 }}>{p.name}</span></div></td>
-                        <td data-label="Category">{p.category}</td>
-                        <td data-label="Price">GH₵{p.price}</td>
-                        <td data-label="Stock">{p.stock_quantity}</td>
-                        <td data-label="Status"><span className={`status-badge ${p.status}`}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <DataTable<Product>
+              data={products}
+              loading={false}
+              emptyTitle="No products yet"
+              emptyMessage="Add your first product to start selling."
+              stickyHeader
+              caption={`${products.length} product${products.length !== 1 ? 's' : ''} in your store`}
+              rowKey={p => p.id}
+              columns={[
+                {
+                  key: 'product', header: 'Product', minWidth: '220px',
+                  cell: p => (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {p.image_url && <img src={p.image_url} alt={p.name} className="product-thumb" />}
+                      <span style={{ fontWeight: 600 }}>{p.name}</span>
+                    </div>
+                  ),
+                },
+                { key: 'category', header: 'Category', minWidth: '140px', cell: p => p.category },
+                { key: 'price', header: 'Price', width: '110px', align: 'right', cell: p => <span className="dt-amount">{formatCurrency(p.price)}</span> },
+                { key: 'stock', header: 'Stock', width: '90px', align: 'center', cell: p => p.stock_quantity },
+                {
+                  key: 'status', header: 'Status', width: '140px', align: 'center',
+                  cell: p => <StatusBadge status={p.status}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</StatusBadge>,
+                },
+              ]}
+            />
           </div>
         )}
         {view === 'add' && (

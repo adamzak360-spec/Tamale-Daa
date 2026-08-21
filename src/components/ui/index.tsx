@@ -311,3 +311,167 @@ export function SearchBar({ value, onChange, placeholder = 'Search products, sto
     </form>
   )
 }
+
+/* ============================================================
+   PROFESSIONAL SaaS DATA TABLE SYSTEM
+   Spec: horizontal data tables for all record collections,
+   modern table design, responsive horizontal scroll on mobile,
+   consistent empty/loading/error states, compact actions.
+   ============================================================ */
+import type { CSSProperties } from 'react'
+
+export interface DataTableColumn<T> {
+  /** Displayed column header */
+  header: ReactNode
+  /** Render cell content for a row */
+  cell: (item: T) => ReactNode
+  /** Column key, used for alignment/sort */
+  key: string
+  /** Cell alignment */
+  align?: 'left' | 'right' | 'center'
+  /** Minimum width hint (e.g. '160px') */
+  minWidth?: string
+  /** Fixed width hint (e.g. '100px') */
+  width?: string
+  /** Sticky positioning (e.g. for action column) */
+  sticky?: 'left' | 'right'
+  /** Column may wrap onto 2 lines instead of single-line */
+  wrap?: boolean
+}
+
+export interface DataTableProps<T> {
+  /** Row data */
+  data: T[]
+  /** Column definitions */
+  columns: DataTableColumn<T>[]
+  /** Shown while data is loading */
+  loading?: boolean
+  /** Shown when data array is empty */
+  emptyTitle?: string
+  emptyMessage?: string
+  emptyAction?: { label: string; onClick: () => void }
+  /** Sticky header row on scroll */
+  stickyHeader?: boolean
+  /** Base class name */
+  className?: string
+  /** Caption below table (result count / pagination) */
+  caption?: ReactNode
+  /** Key used to uniquely identify rows */
+  rowKey?: (item: T) => string
+}
+
+export function DataTable<T>({ data, columns, loading = false, emptyTitle = 'No records yet', emptyMessage = 'There is nothing to display right now.', emptyAction, stickyHeader = true, className = '', caption, rowKey }: DataTableProps<T>) {
+  if (loading) {
+    return (
+      <div className={`dt-wrap ${className}`}>
+        <div className="dt-table-card">
+          <table className="dt-table dt-skeleton" style={{ minWidth: '720px' }} aria-busy="true" aria-label="Loading">
+            <thead><tr>{columns.map(c => <th key={c.key} style={makeThStyle(c)}><div className="skeleton" style={{ width: '70%' }} /></th>)}</tr></thead>
+            <tbody>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i}>
+                  {columns.map(c => <td key={c.key} style={makeTdStyle(c)}><div className="skeleton" style={{ width: i % 2 === 0 ? '75%' : '45%' }} /></td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className={`dt-wrap ${className}`}>
+        <div className="dt-table-card">
+          <EmptyState title={emptyTitle} message={emptyMessage} action={emptyAction} />
+        </div>
+      </div>
+    )
+  }
+
+  const getKey = (item: T, i: number) => (rowKey ? rowKey(item) : `row-${i}`)
+
+  return (
+    <div className={`dt-wrap ${className}`}>
+      <div className="dt-table-card">
+        <div className="dt-scroll">
+          <table className="dt-table" style={{ minWidth: '720px' }}>
+            <thead className={stickyHeader ? 'dt-head-sticky' : ''}>
+              <tr>
+                {columns.map(c => <th key={c.key} style={makeThStyle(c)} className={c.wrap ? 'dt-cell-wrap' : ''}>{c.header}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((item, i) => (
+                <tr key={getKey(item, i)} className="dt-row">
+                  {columns.map(c => <td key={c.key} style={makeTdStyle(c)} className={c.wrap ? 'dt-cell-wrap' : ''}>{c.cell(item)}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {caption && <div className="dt-caption">{caption}</div>}
+      </div>
+    </div>
+  )
+}
+
+function makeThStyle<T>(c: DataTableColumn<T>): CSSProperties {
+  const base: CSSProperties = { textAlign: c.align || 'left' }
+  if (c.minWidth) base.minWidth = c.minWidth
+  if (c.width) { base.width = c.width; base.minWidth = c.width }
+  return base
+}
+
+function makeTdStyle<T>(c: DataTableColumn<T>): CSSProperties {
+  const base: CSSProperties = { textAlign: c.align || 'left' }
+  if (c.sticky === 'left' || c.sticky === 'right') {
+    base.position = 'sticky'
+    base[c.sticky] = 0
+    base.background = 'var(--color-surface, #fff)'
+  }
+  if (c.minWidth) base.minWidth = c.minWidth
+  if (c.width) { base.width = c.width; base.minWidth = c.width }
+  return base
+}
+
+/* ---------- TableToolbar: search + filter chips in one horizontal bar ---------- */
+export function TableToolbar({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`dt-toolbar ${className}`}>{children}</div>
+}
+
+/* ---------- TablePagination: simple prev/next + page info ---------- */
+export function TablePagination({ page, pageSize, total, onPageChange }: {
+  page: number; pageSize: number; total: number; onPageChange: (p: number) => void
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1
+  const end = Math.min(total, page * pageSize)
+  return (
+    <div className="dt-pagination">
+      <span className="dt-pagination-info">Showing {start}–{end} of {total}</span>
+      <div className="dt-pagination-actions">
+        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>Previous</Button>
+        <span className="dt-pagination-pages">Page {page} of {totalPages}</span>
+        <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>Next</Button>
+      </div>
+    </div>
+  )
+}
+
+/* ---------- RowActions: compact action buttons in a single cell ---------- */
+export function RowActions({ children }: { children: ReactNode }) {
+  return <div className="dt-row-actions">{children}</div>
+}
+
+/* ---------- PersonCell: primary name + secondary supporting text ---------- */
+export function PersonCell({ primary, secondary, muted }: { primary: ReactNode; secondary?: ReactNode; muted?: ReactNode }) {
+  return (
+    <div className="dt-person">
+      <div className="dt-person-primary">{primary}</div>
+      {secondary && <div className="dt-person-secondary">{secondary}</div>}
+      {muted && <div className="dt-person-muted">{muted}</div>}
+    </div>
+  )
+}
