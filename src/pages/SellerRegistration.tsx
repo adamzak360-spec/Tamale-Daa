@@ -65,6 +65,33 @@ function slugify(name: string) {
     .slice(0, 60)
 }
 
+const inputStyle: React.CSSProperties = { padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', minWidth: 0 }
+
+// Stable (module-level) components so inputs never unmount on every keystroke.
+// Defining them inside the render body caused the phone keyboard to disappear
+// after each letter because React remounted the inputs and stole focus.
+function FormField({ label, value, required, placeholder, onChange }: { label: string; value: string; required?: boolean; placeholder?: string; onChange: (v: string) => void }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>
+        {label}{required && <span style={{ color: '#dc2626' }}> *</span>}
+      </label>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={inputStyle} />
+    </div>
+  )
+}
+
+function PayoutField({ field, value, onChange }: { field: { key: string; label: string; placeholder: string }; value: string; onChange: (v: string) => void }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>
+        {field.label}<span style={{ color: '#dc2626' }}> *</span>
+      </label>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder={field.placeholder} style={inputStyle} />
+    </div>
+  )
+}
+
 export default function SellerRegistration() {
   const { user, isLoading: authLoading } = useAuth()
     const [form, setForm] = useState({
@@ -134,36 +161,7 @@ export default function SellerRegistration() {
     }
   }
 
-  const payoutLabelStyle: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 600, color: '#374151' }
-  const payoutInputStyle: React.CSSProperties = { padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', minWidth: 0 }
 
-  const PayoutField = ({ f }: { f: { key: string; label: string; placeholder: string } }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={payoutLabelStyle}>
-        {f.label}<span style={{ color: '#dc2626' }}> *</span>
-      </label>
-      <input
-        value={payoutFields[f.key] || ''}
-        onChange={e => setPayoutFields(prev => ({ ...prev, [f.key]: e.target.value }))}
-        placeholder={f.placeholder}
-        style={payoutInputStyle}
-      />
-    </div>
-  )
-
-  const field = (label: string, name: keyof typeof form, required = false, placeholder = '') => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>
-        {label}{required && <span style={{ color: '#dc2626' }}> *</span>}
-      </label>
-      <input
-        value={form[name]}
-        onChange={e => set(name, e.target.value)}
-        placeholder={placeholder}
-        style={{ padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', minWidth: 0 }}
-      />
-    </div>
-  )
 
   return (
     <div className="seller-register-page" style={{ maxWidth: 640, margin: '0 auto', padding: '40px 20px 60px' }}>
@@ -213,11 +211,11 @@ export default function SellerRegistration() {
       )}
 
       <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, border: '1px solid #e5e7eb', borderRadius: 12, padding: '20px 18px', background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
-        {field('Business / Store Name', 'business_name', true, 'e.g. Adama\'s Boutique')}
-        {field('Category', 'category', false, 'e.g. Fashion, Electronics, Home & Kitchen')}
-        {field('Your Full Name', 'owner_name', true)}
-        {field('Phone Number', 'owner_phone', false, 'For payout contact')}
-        <div style={{ gridColumn: '1 / -1' }}>{field('Location', 'location', false, 'e.g. Tamale, Northern Region')}</div>
+        <FormField label="Business / Store Name" value={form.business_name} required onChange={v => set('business_name', v)} placeholder="e.g. Adama's Boutique" />
+        <FormField label="Category" value={form.category} onChange={v => set('category', v)} placeholder="e.g. Fashion, Electronics, Home & Kitchen" />
+        <FormField label="Your Full Name" value={form.owner_name} required onChange={v => set('owner_name', v)} />
+        <FormField label="Phone Number" value={form.owner_phone} onChange={v => set('owner_phone', v)} placeholder="For payout contact" />
+        <div style={{ gridColumn: '1 / -1' }}><FormField label="Location" value={form.location} onChange={v => set('location', v)} placeholder="e.g. Tamale, Northern Region" /></div>
         <div style={{ gridColumn: '1 / -1' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>About Your Business</label>
@@ -253,7 +251,7 @@ export default function SellerRegistration() {
         {form.payment_method ? (
           <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
             {(PAYOUT_METHODS.find(m => m.id === form.payment_method)?.fields || []).map(f => (
-              <PayoutField key={f.key} f={f} />
+              <PayoutField key={f.key} field={f} value={payoutFields[f.key] || ''} onChange={v => setPayoutFields(prev => ({ ...prev, [f.key]: v }))} />
             ))}
           </div>
         ) : null}
