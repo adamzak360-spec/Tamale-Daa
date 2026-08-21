@@ -5,17 +5,30 @@ import AdminShell, { SidebarSection } from '../components/AdminShell'
 import AdminVisibility from './admin/AdminVisibility'
 import { Button, KpiCard, StatusBadge, SkeletonTable, EmptyState, DataTable } from '../components/ui'
 import { formatCurrency } from '../utils/currency'
-import { Package, ShoppingBag, Wallet, BellRing } from 'lucide-react'
+import { Package, ShoppingBag, Wallet, BellRing, Pencil, Trash2 } from 'lucide-react'
 import {
   getMyStore,
   getPayouts,
   getSellerProductIds,
+  linkSellerProduct,
   type Seller,
   type Payout,
 } from '../services/marketplaceService'
-import { getAllProducts, getDashboardStats } from '../services/productService'
+import {
+  getAllProducts,
+  getDashboardStats,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  uploadProductImage,
+  uploadProductVideo,
+  syncProductVariants,
+  getProductVariants,
+} from '../services/productService'
 import { getAllOrders } from '../services/orderService'
-import type { Product, Order, DashboardStats } from '../types'
+import type { Product, Order, DashboardStats, ProductVariant } from '../types'
+import AdminProductForm, { defaultFormState, type ProductFormState, type ProductFormErrors } from './admin/AdminProductForm'
+import { toast, ConfirmDialog } from '../components/ui'
 
 const SellerOrders = lazy(() => import('./seller/SellerOrders'))
 const SellerPayouts = lazy(() => import('./seller/SellerPayouts'))
@@ -33,39 +46,196 @@ export default function SellerDashboard() {
   const [payouts, setPayouts] = useState<Payout[]>([])
 
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => { load() }, [])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState<ProductFormState>(defaultFormState)
+  const [formErrors, setFormErrors] = useState<ProductFormErrors>({})
+  const [editProduct, setEditProduct] = useState<Product | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
     if (!user) return
-    const myStore = await getMyStore(user.id)
-    if (!myStore) { setLoading(false); return }
-    setStore(myStore)
+    try {
+      const myStore = await getMyStore(user.id)
+      if (!myStore) { setLoading(false); return }
+      setStore(myStore)
 
-    if (myStore.status === 'approved') {
-      const [allProducts, ids, ordersData, statsData, payoutData] = await Promise.all([
-        getAllProducts(),
-        getSellerProductIds(myStore.id),
-        getAllOrders(),
-        getDashboardStats(),
-        getPayouts(),
-      ])
-      // Seller only sees products they are linked to (their products live in the shared catalog)
-      const linked = allProducts.filter(p => ids.includes(p.id))
-      setProducts(linked)
-            // Seller orders = orders containing at least one of their linked products
-      const myOrders = ordersData.filter(o =>
-        (o.items || []).some((item: any) => ids.includes(item.product_id || item.productId))
-      )
-      setOrders(myOrders)
-      setStats({ ...statsData, total: linked.length, active: linked.filter(p => p.status === 'active').length, outOfStock: linked.filter(p => p.status === 'out-of-stock').length })
-      setPayouts(payoutData.filter(p => p.seller_id === myStore.id))
+      if (myStore.status === 'approved') {
+        const [allProducts, ids, ordersData, statsData, payoutData] = await Promise.all([
+          getAllProducts(),
+          getSellerProductIds(myStore.id),
+          getAllOrders(),
+          getDashboardStats(),
+          getPayouts(),
+        ])
+        // Seller only sees products they are linked to
+        const linked = allProducts.filter(p => ids.includes(p.id))
+        setProducts(linked)
+        
+        const myOrders = ordersData.filter(o =>
+          (o.items || []).some((item: any) => ids.includes(item.product_id || item.productId))
+        )
+        setOrders(myOrders)
+        setStats({ 
+          ...statsData, 
+          total: linked.length, 
+          active: linked.filter(p => p.status === 'active').length, 
+          outOfStock: linked.filter(p => p.status === 'out-of-stock').length 
+        })
+        setPayouts(payoutData.filter(p => p.seller_id === myStore.id))
+      }
+    } catch (err) {
+      console.error('Load failed:', err)
+      toast('Failed to load dashboard data', 'error')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [user])
 
+  useEffect(() => { load() }, [load])
+
   const reload = () => load()
+
+  const validateForm = (): boolean => {
+    const errors: ProductFormErrors = {}
+    if (!formData.name.trim()) errors.name = 'Product name is required'
+    if (!formData.description.trim()) errors.description = 'Description is required'
+    if (!formData.price || parseFloat(formData.price) <= 0) errors.price = 'Valid price is required'
+    if (!formData.category.trim()) errors.category = 'Category is required'
+    if (!formData.stock_quantity || parseInt(formData.stock_quantity) < 0) errors.stock_quantity = 'Valid stock quantity is required'
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateForm() || !store) return
+
+    setIsSubmitting(true)
+    try {
+      let imageUrl = formData.existingImageUrl
+      if (formData.image) {
+        imageUrl = await uploadProductImage(formData.image)
+      }
+
+      const newGalleryUrls = await Promise.all(
+        formData.galleryImages.map(file => uploadProductImage(file))
+      )
+      const gallery_urls = [...formData.existingGalleryUrls, ...newGalleryUrls]
+
+      const newVideoUrls = await Promise.all(
+        formData.videos.map(file => uploadProductVideo(file))
+      )
+      const video_urls = [...formData.existingVideoUrls, ...newVideoUrls]
+
+      const productData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        price: parseFloat(formData.price),
+        category: formData.category.trim(),
+        stock_quantity: parseInt(formData.stock_quantity),
+        status: formData.status,
+        image_url: imageUrl,
+        gallery_urls,
+        video_urls,
+        has_sizes: formData.has_sizes,
+        delivery_fee_tamale: formData.delivery_fee_tamale ? parseFloat(formData.delivery_fee_tamale) : 0,
+        delivery_fee_greater_accra: formData.delivery_fee_greater_accra ? parseFloat(formData.delivery_fee_greater_accra) : 0,
+        delivery_fee_lesser_accra: formData.delivery_fee_lesser_accra ? parseFloat(formData.delivery_fee_lesser_accra) : 0,
+        delivery_fee_dhl: formData.delivery_fee_dhl ? parseFloat(formData.delivery_fee_dhl) : 0,
+        delivery_fee_ups: formData.delivery_fee_ups ? parseFloat(formData.delivery_fee_ups) : 0,
+        delivery_fee_fedex: formData.delivery_fee_fedex ? parseFloat(formData.delivery_fee_fedex) : 0,
+        specifications: formData.specifications,
+      }
+
+      let savedProduct: Product
+      if (view === 'edit' && editProduct) {
+        savedProduct = await updateProduct(editProduct.id, productData)
+        if (formData.has_sizes) {
+          await syncProductVariants(editProduct.id, formData.variants)
+        }
+        toast('Product updated successfully!', 'success')
+      } else {
+        savedProduct = await createProduct(productData)
+        // Link to seller
+        await linkSellerProduct(store.id, savedProduct.id)
+        if (formData.has_sizes) {
+          await syncProductVariants(savedProduct.id, formData.variants)
+        }
+        toast('Product added successfully!', 'success')
+      }
+
+      setFormData(defaultFormState)
+      setView('products')
+      setEditProduct(null)
+      await reload()
+    } catch (err) {
+      console.error('Submit failed:', err)
+      toast(err instanceof Error ? err.message : 'Operation failed', 'error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEdit = async (product: Product) => {
+    setEditProduct(product)
+    let variants: Omit<ProductVariant, 'id' | 'created_at' | 'updated_at'>[] = []
+    if (product.has_sizes) {
+      try {
+        const variantData = await getProductVariants(product.id)
+        variants = variantData.map(v => ({
+          product_id: v.product_id,
+          variant_type: v.variant_type,
+          variant_value: v.variant_value,
+          stock_quantity: v.stock_quantity,
+          active: v.active
+        }))
+      } catch (err) {
+        console.error('Failed to load variants:', err)
+      }
+    }
+
+    setFormData({
+      ...defaultFormState,
+      name: product.name,
+      description: product.description,
+      price: product.price.toString(),
+      category: product.category,
+      stock_quantity: product.stock_quantity.toString(),
+      status: product.status,
+      existingImageUrl: product.image_url,
+      existingGalleryUrls: product.gallery_urls || [],
+      existingVideoUrls: product.video_urls || [],
+      has_sizes: product.has_sizes || false,
+      variants,
+      delivery_fee_tamale: (product.delivery_fee_tamale || 0).toString(),
+      delivery_fee_greater_accra: (product.delivery_fee_greater_accra || 0).toString(),
+      delivery_fee_lesser_accra: (product.delivery_fee_lesser_accra || 0).toString(),
+      delivery_fee_dhl: (product.delivery_fee_dhl || 0).toString(),
+      delivery_fee_ups: (product.delivery_fee_ups || 0).toString(),
+      delivery_fee_fedex: (product.delivery_fee_fedex || 0).toString(),
+      specifications: typeof product.specifications === 'string'
+        ? (() => { try { return JSON.parse(product.specifications); } catch { return {}; } })()
+        : (product.specifications || {}),
+    })
+    setView('edit')
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
+    try {
+      await deleteProduct(deleteTarget.id)
+      toast(`"${deleteTarget.name}" has been deleted.`, 'success')
+      await reload()
+      setDeleteTarget(null)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Delete failed', 'error')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const sellerStats = useMemo(() => ({
     ...stats,
@@ -166,6 +336,17 @@ export default function SellerDashboard() {
       onSelect={(k) => setView(k as SellerView)}
       userLabel={store.owner_email ?? ''}
     >
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Product"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This will remove it from your store permanently.`}
+        confirmLabel="Delete Product"
+        danger
+        busy={isDeleting}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
+
       <Suspense fallback={<div className="admin-loading">Loading view...</div>}>
         {view === 'dashboard' && (
           <div className="dashboard-content">
@@ -192,13 +373,19 @@ export default function SellerDashboard() {
                 <div className="recent-orders">
                   {products.slice(0, 4).map(p => (
                     <div key={p.id} className="recent-order-card">
-                      <div>
-                        <div className="recent-order-name">{p.name}</div>
-                        <div className="recent-order-meta">{p.category} · Stock: {p.stock_quantity}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {p.image_url && <img src={p.image_url} alt={p.name} className="product-thumb" style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }} />}
+                        <div>
+                          <div className="recent-order-name">{p.name}</div>
+                          <div className="recent-order-meta">{p.category} · Stock: {p.stock_quantity}</div>
+                        </div>
                       </div>
                       <div className="recent-order-right">
                         <div className="recent-order-total">GH₵{Number(p.price).toLocaleString()}</div>
-                        <StatusBadge status={p.status}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</StatusBadge>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <StatusBadge status={p.status}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</StatusBadge>
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(p)} icon={<Pencil size={14} />} />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -214,7 +401,7 @@ export default function SellerDashboard() {
                 <h3 className="section-title">My Products</h3>
                 <p className="section-subtitle">Products in your store. Add new ones or contact the admin to manage visibility.</p>
               </div>
-              <button onClick={() => setView('add')} className="btn-primary">+ Add Product</button>
+              <Button variant="primary" size="sm" onClick={() => setView('add')}>+ Add Product</Button>
             </div>
             <DataTable<Product>
               data={products}
@@ -238,34 +425,38 @@ export default function SellerDashboard() {
                 { key: 'price', header: 'Price', width: '110px', align: 'right', cell: p => <span className="dt-amount">{formatCurrency(p.price)}</span> },
                 { key: 'stock', header: 'Stock', width: '90px', align: 'center', cell: p => p.stock_quantity },
                 {
-                  key: 'status', header: 'Status', width: '140px', align: 'center',
+                  key: 'status', header: 'Status', width: '120px', align: 'center',
                   cell: p => <StatusBadge status={p.status}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</StatusBadge>,
+                },
+                {
+                  key: 'actions', header: 'Actions', width: '110px', sticky: 'right', align: 'right',
+                  cell: p => (
+                    <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'flex-end' }}>
+                      <Button variant="ghost" size="sm" icon={<Pencil size={14} />} onClick={() => handleEdit(p)}>Edit</Button>
+                      <Button variant="ghost" size="sm" icon={<Trash2 size={14} />} onClick={() => setDeleteTarget(p)} />
+                    </div>
+                  ),
                 },
               ]}
             />
           </div>
         )}
-        {view === 'add' && (
+        {(view === 'add' || view === 'edit') && (
           <div className="products-list-content">
-            <div className="view-header-row">
-              <div>
-                <h3 className="section-title">Add Product to Your Store</h3>
-                <p className="section-subtitle">Submit your product — the admin will review and publish it to the marketplace.</p>
-              </div>
-            </div>
-            <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-              To keep the catalog consistent, new products are submitted for admin approval. After you add a product here, contact the admin via chat or request it be linked to your store.
-            </p>
-            {/* Seller add form reuses the product form in read-only submit mode with a notice */}
-            <div className="empty-state" style={{ marginTop: 16 }}>
-              <h3>Product submission</h3>
-              <p style={{ maxWidth: 520, margin: '8px auto' }}>
-                Use the marketplace "Add Product" flow — for now, send your product details (name, photos, price, stock, description) to the admin through the site chat, and they'll add it to your store.
-              </p>
-            </div>
+            <AdminProductForm
+              mode={view}
+              editProduct={editProduct}
+              formData={formData}
+              formErrors={formErrors}
+              isSubmitting={isSubmitting}
+              categories={[...new Set(products.map(p => p.category))]}
+              onSubmit={handleSubmit}
+              onFormChange={setFormData}
+              onCancel={() => { setView('products'); setEditProduct(null); setFormData(defaultFormState) }}
+            />
           </div>
         )}
-        {view === 'visibility' && <AdminVisibility products={products} />}
+        {view === 'visibility' && <AdminVisibility products={products} onToggle={reload} />}
         {view === 'orders' && <SellerOrders orders={orders} />}
         {view === 'payouts' && <SellerPayouts payouts={payouts} />}
         {view === 'storeSettings' && <SellerStoreSettings store={store} onSaved={reload} />}
