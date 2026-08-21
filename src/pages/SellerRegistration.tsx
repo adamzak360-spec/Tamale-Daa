@@ -234,13 +234,13 @@ export default function SellerRegistration() {
           </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={payoutLabelStyle}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>
             Payout Method<span style={{ color: '#dc2626' }}> *</span>
           </label>
           <select
             value={form.payment_method}
             onChange={e => { set('payment_method', e.target.value); setPayoutFields({}) }}
-            style={{ ...payoutInputStyle, background: '#fff' }}
+            style={{ ...inputStyle, background: '#fff' }}
           >
             <option value="">— Select payout method —</option>
             {PAYOUT_METHODS.map(m => (
