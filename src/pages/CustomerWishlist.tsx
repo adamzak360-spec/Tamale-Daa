@@ -6,6 +6,7 @@ import { getProductById } from '../services/productService'
 import type { Product } from '../types'
 import { formatCurrency } from '../utils/currency'
 import { Heart, MessageCircle, ShoppingBag, Trash2 } from 'lucide-react'
+import { Button, EmptyState, PageHeader, SkeletonCard, toast } from '../components/ui'
 import './CustomerWishlist.css'
 
 export default function CustomerWishlist() {
@@ -49,29 +50,33 @@ export default function CustomerWishlist() {
       setProducts(prev => prev.filter(p => p.id !== productId))
       // Instantly update the header badge number
       window.dispatchEvent(new CustomEvent('wishlist-changed', { detail: { added: false } }))
+      toast('Removed from wishlist.', 'success')
+    } else {
+      toast('Could not remove item from wishlist.', 'error')
     }
   }
 
   return (
     <div className="wishlist-page container">
       <div className="wishlist-header">
-        <h1 className="wishlist-title"><Heart size={26} /> My Wishlist</h1>
-        <p className="wishlist-subtitle">
-          {products.length} {products.length === 1 ? 'item saved' : 'items saved'} — ready when you are.
-        </p>
+        <PageHeader
+          title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Heart size={24} className="text-teal" /> My Wishlist</span>}
+          subtitle={`${products.length} ${products.length === 1 ? 'item saved' : 'items saved'} — ready when you are.`}
+        />
       </div>
 
       {isLoading ? (
-        <div className="wishlist-loading">Loading your saved items...</div>
-      ) : products.length === 0 ? (
-        <div className="wishlist-empty">
-          <Heart size={40} className="empty-icon" />
-          <h2>Your wishlist is empty</h2>
-          <p>Tap the <strong>Save</strong> button on any product to keep it here for later.</p>
-          <button className="wishlist-browse-btn" onClick={() => navigate('/products')}>
-            <ShoppingBag size={18} /> Browse Products
-          </button>
+        <div className="wishlist-grid">
+          {[1, 2, 3].map(i => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
+      ) : products.length === 0 ? (
+        <EmptyState
+          title="Your wishlist is empty"
+          message="Tap the Save button on any product to keep it here for later."
+          action={{ label: 'Browse Products', onClick: () => navigate('/products') }}
+        />
       ) : (
         <div className="wishlist-grid">
           {products.map(p => (
@@ -87,12 +92,8 @@ export default function CustomerWishlist() {
                 <h3 onClick={() => navigate(`/product/${p.id}`)}>{p.name}</h3>
                 <p className="wishlist-price">{formatCurrency(p.price)}</p>
                 <div className="wishlist-card-actions">
-                  <button className="wl-chat-btn" onClick={() => navigate(`/chat?productId=${p.id}`)}>
-                    <MessageCircle size={16} /> Chat with Seller
-                  </button>
-                  <button className="wl-remove-btn" onClick={() => handleRemove(p.id)} title="Remove from wishlist">
-                    <Trash2 size={16} /> Remove
-                  </button>
+                  <Button className="wl-chat-btn" variant="secondary" size="sm" icon={<MessageCircle size={14} />} onClick={() => navigate(`/chat?productId=${p.id}`)}>Chat with Seller</Button>
+                  <Button className="wl-remove-btn" variant="danger-solid" size="sm" icon={<Trash2 size={14} />} onClick={() => handleRemove(p.id)}>Remove</Button>
                 </div>
               </div>
             </div>

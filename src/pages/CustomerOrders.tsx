@@ -5,6 +5,8 @@ import { getCustomerOrders } from '../services/customerOrderService'
 import { supabase } from '../supabaseClient'
 import { Order } from '../types'
 import { formatCurrency } from '../utils/currency'
+import { Button, EmptyState, PageHeader, Select, SkeletonCard, StatusBadge } from '../components/ui'
+import { ArrowLeft, Package, Eye, ShoppingCart } from 'lucide-react'
 import './CustomerOrders.css'
 
 export default function CustomerOrders() {
@@ -99,7 +101,11 @@ export default function CustomerOrders() {
     return (
       <div className="customer-orders">
         <div className="page-container">
-          <div className="loading-spinner">Loading orders...</div>
+          <div className="orders-list">
+            {[1, 2, 3].map(i => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -109,10 +115,10 @@ export default function CustomerOrders() {
     <div className="customer-orders">
       <div className="page-container">
         <div className="orders-header">
-          <h1>My Orders</h1>
-          <button className="back-btn" onClick={() => navigate('/customer')}>
-            ← Back to Dashboard
-          </button>
+          <PageHeader
+            title="My Orders"
+            actions={<Button variant="outline" size="sm" icon={<ArrowLeft size={14} />} onClick={() => navigate('/customer')}>Back to Dashboard</Button>}
+          />
         </div>
 
         {error && (
@@ -123,47 +129,28 @@ export default function CustomerOrders() {
 
         <div className="orders-controls">
           <div className="control-group">
-            <label htmlFor="filter-status">Filter by Status:</label>
-            <select
-              id="filter-status"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="filter-select"
-            >
+            <Select label="Filter by Status:" id="filter-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               {statusOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+                <option key={option.value} value={option.value}>{option.label}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div className="control-group">
-            <label htmlFor="sort-by">Sort by:</label>
-            <select
-              id="sort-by"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
-              className="sort-select"
-            >
+            <Select label="Sort by:" id="sort-by" value={sortBy} onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}>
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
-            </select>
+            </Select>
           </div>
         </div>
 
         {sortedOrders.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📦</div>
-            <h2>No Orders Found</h2>
-            <p>You haven't placed any orders yet.</p>
-            <button
-              className="shop-btn"
-              onClick={() => navigate('/products')}
-            >
-              Start Shopping
-            </button>
-          </div>
+          <EmptyState
+            title="No Orders Found"
+            message="You haven't placed any orders yet."
+            icon={<Package size={40} style={{ color: 'var(--color-text-tertiary, #9ca3af)' }} />}
+            action={{ label: 'Start Shopping', onClick: () => navigate('/products') }}
+          />
         ) : (
           <div className="orders-list">
             {sortedOrders.map(order => (
@@ -180,9 +167,9 @@ export default function CustomerOrders() {
                     </span>
                   </div>
                   <div className="order-status-section">
-                    <span className={`status-badge ${order.status}`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('-', ' ')}
-                    </span>
+                    <StatusBadge status={order.status as any}>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/-/g, ' ')}
+                    </StatusBadge>
                   </div>
                 </div>
 
@@ -209,19 +196,9 @@ export default function CustomerOrders() {
                 </div>
 
                 <div className="order-card-footer">
-                  <button
-                    className="view-details-btn"
-                    onClick={() => navigate(`/customer/orders/${order.id}`)}
-                  >
-                    View Details
-                  </button>
+                  <Button variant="secondary" size="sm" icon={<Eye size={14} />} onClick={() => navigate(`/customer/orders/${order.id}`)}>View Details</Button>
                   {order.status === 'delivered' && (
-                    <button
-                      className="reorder-btn"
-                      onClick={() => navigate(`/customer/orders/${order.id}/reorder`)}
-                    >
-                      Reorder
-                    </button>
+                    <Button variant="primary" size="sm" icon={<ShoppingCart size={14} />} onClick={() => navigate(`/customer/orders/${order.id}/reorder`)}>Reorder</Button>
                   )}
                 </div>
               </div>

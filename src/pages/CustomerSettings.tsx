@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { Button, Input, PageHeader } from '../components/ui'
+import { toast } from '../components/ui'
+import { ArrowLeft } from 'lucide-react'
 import './CustomerSettings.css'
 
 export default function CustomerSettings() {
@@ -28,16 +31,19 @@ export default function CustomerSettings() {
     // Validation
     if (!formData.newPassword) {
       setError('Please enter a new password')
+      toast('Please enter a new password', 'error')
       return
     }
 
     if (formData.newPassword.length < 6) {
       setError('Password must be at least 6 characters long')
+      toast('Password must be at least 6 characters long', 'error')
       return
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
       setError('Passwords do not match')
+      toast('Passwords do not match', 'error')
       return
     }
 
@@ -47,8 +53,10 @@ export default function CustomerSettings() {
       
       if (changeError) {
         setError(changeError.message || 'Failed to change password')
+        toast(changeError.message || 'Failed to change password', 'error')
       } else {
         setSuccess('Password changed successfully!')
+        toast('Password changed successfully!', 'success')
         setFormData({ newPassword: '', confirmPassword: '' })
         setTimeout(() => {
           navigate('/customer')
@@ -66,10 +74,10 @@ export default function CustomerSettings() {
     <div className="customer-settings">
       <div className="page-container">
         <div className="settings-header">
-          <h1>Account Settings</h1>
-          <button className="back-btn" onClick={() => navigate('/customer')}>
-            ← Back to Dashboard
-          </button>
+          <PageHeader
+            title="Account Settings"
+            actions={<Button variant="outline" size="sm" icon={<ArrowLeft size={14} />} onClick={() => navigate('/customer')}>Back to Dashboard</Button>}
+          />
         </div>
 
         {error && (
@@ -93,44 +101,16 @@ export default function CustomerSettings() {
 
             <form onSubmit={handleSubmit} className="settings-form">
               <div className="form-group">
-                <label htmlFor="newPassword">New Password</label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleInputChange}
-                  placeholder="Enter new password"
-                  disabled={isChanging}
-                />
-                <small>Minimum 6 characters</small>
+                <Input label="New Password" required type="password" id="newPassword" name="newPassword" value={formData.newPassword} onChange={handleInputChange} placeholder="Enter new password" disabled={isChanging} hint="Minimum 6 characters" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="Confirm new password"
-                  disabled={isChanging}
-                />
+                <Input label="Confirm Password" required type="password" id="confirmPassword" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} placeholder="Confirm new password" disabled={isChanging} />
               </div>
 
               <div className="form-actions">
-                <button type="submit" className="save-btn" disabled={isChanging}>
-                  {isChanging ? 'Changing Password...' : 'Change Password'}
-                </button>
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => navigate('/customer')}
-                  disabled={isChanging}
-                >
-                  Cancel
-                </button>
+                <Button type="submit" variant="primary" disabled={isChanging}>{isChanging ? 'Changing Password...' : 'Change Password'}</Button>
+                <Button type="button" variant="outline" disabled={isChanging} onClick={() => navigate('/customer')}>Cancel</Button>
               </div>
             </form>
           </div>

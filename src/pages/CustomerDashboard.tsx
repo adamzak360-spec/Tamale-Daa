@@ -6,6 +6,9 @@ import { supabase } from '../supabaseClient'
 import { getCustomerProfile } from '../services/customerProfileService'
 import { Order, CustomerProfile } from '../types'
 import { formatCurrency } from '../utils/currency'
+import { KpiCard, SkeletonCard, StatusBadge, Button } from '../components/ui'
+import { toast } from '../components/ui'
+import { ShieldCheck, User, Package, Settings, ShoppingBag, LogOut, ArrowRight, ClipboardList, CircleCheck, XCircle, ListOrdered } from 'lucide-react'
 import './CustomerDashboard.css'
 
 export default function CustomerDashboard() {
@@ -82,7 +85,7 @@ export default function CustomerDashboard() {
   const handleLogout = async () => {
     const { error } = await signOut()
     if (error) {
-      alert('Failed to logout: ' + error.message)
+      toast('Failed to logout: ' + error.message, 'error')
     } else {
       navigate('/')
     }
@@ -92,7 +95,15 @@ export default function CustomerDashboard() {
     return (
       <div className="customer-dashboard">
         <div className="page-container">
-          <div className="loading-spinner">Loading dashboard...</div>
+          <div className="dashboard-stats">
+            {[1, 2, 3, 4].map(i => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+          <div className="dashboard-grid" style={{ marginTop: 16 }}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
         </div>
       </div>
     )
@@ -110,7 +121,7 @@ export default function CustomerDashboard() {
             <h1>Welcome, {profile?.full_name || user?.email?.split('@')[0] || 'Customer'}!</h1>
             <p className="tagline">Manage your account and orders</p>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+          <Button variant="outline" size="sm" icon={<LogOut size={14} />} onClick={handleLogout}>Logout</Button>
         </div>
 
         {error && (
@@ -146,52 +157,28 @@ export default function CustomerDashboard() {
             <h2>Quick Actions</h2>
             <div className="actions-list">
               {isAdmin && (
-                <button 
-                  className="action-btn admin-btn" 
+                <Button
+                  className="action-btn admin-btn"
+                  variant="navy"
+                  icon={<ShieldCheck size={16} />}
                   onClick={() => navigate('/admin')}
-                  style={{ backgroundColor: '#0066cc', color: 'white' }}
                 >
-                  <span className="icon">🛡️</span>
-                  <span>Admin Dashboard</span>
-                </button>
+                  Admin Dashboard
+                </Button>
               )}
-              <button className="action-btn" onClick={() => navigate('/customer/profile')}>
-                <span className="icon">👤</span>
-                <span>Edit Profile</span>
-              </button>
-              <button className="action-btn" onClick={() => navigate('/customer/orders')}>
-                <span className="icon">📦</span>
-                <span>My Orders</span>
-              </button>
-              <button className="action-btn" onClick={() => navigate('/customer/settings')}>
-                <span className="icon">⚙️</span>
-                <span>Account Settings</span>
-              </button>
-              <button className="action-btn" onClick={() => navigate('/products')}>
-                <span className="icon">🛍️</span>
-                <span>Continue Shopping</span>
-              </button>
+              <Button className="action-btn" variant="secondary" icon={<User size={16} />} onClick={() => navigate('/customer/profile')}>Edit Profile</Button>
+              <Button className="action-btn" variant="secondary" icon={<Package size={16} />} onClick={() => navigate('/customer/orders')}>My Orders</Button>
+              <Button className="action-btn" variant="secondary" icon={<Settings size={16} />} onClick={() => navigate('/customer/settings')}>Account Settings</Button>
+              <Button className="action-btn" variant="secondary" icon={<ShoppingBag size={16} />} onClick={() => navigate('/products')}>Continue Shopping</Button>
             </div>
           </div>
         </div>
 
         <div className="dashboard-stats">
-          <div className="stat-card">
-            <div className="stat-number">{pendingOrders.length}</div>
-            <div className="stat-label">Active Orders</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">{completedOrders.length}</div>
-            <div className="stat-label">Completed Orders</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">{cancelledOrders.length}</div>
-            <div className="stat-label">Cancelled Orders</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">{orders.length}</div>
-            <div className="stat-label">Total Orders</div>
-          </div>
+          <KpiCard icon={<ClipboardList size={20} />} iconBg="rgba(255, 121, 63, 0.12)" label="Active Orders" value={pendingOrders.length} />
+          <KpiCard icon={<CircleCheck size={20} />} iconBg="rgba(0, 184, 169, 0.12)" label="Completed Orders" value={completedOrders.length} />
+          <KpiCard icon={<XCircle size={20} />} iconBg="rgba(220, 38, 38, 0.10)" label="Cancelled Orders" value={cancelledOrders.length} />
+          <KpiCard icon={<ListOrdered size={20} />} iconBg="rgba(11, 47, 99, 0.10)" label="Total Orders" value={orders.length} />
         </div>
 
         {pendingOrders.length > 0 && (
@@ -205,25 +192,15 @@ export default function CustomerDashboard() {
                     <div className="order-date">{new Date(order.created_at || '').toLocaleDateString()}</div>
                   </div>
                   <div className="order-status">
-                    <span className={`status-badge ${order.status}`}>{order.status}</span>
+                    <StatusBadge status={order.status as any}>{order.status.replace(/-/g, ' ')}</StatusBadge>
                   </div>
                   <div className="order-total">{formatCurrency(order.total)}</div>
-                  <button
-                    className="view-btn"
-                    onClick={() => navigate(`/customer/orders/${order.id}`)}
-                  >
-                    View
-                  </button>
+                  <Button variant="ghost" size="sm" icon={<ArrowRight size={13} />} onClick={() => navigate(`/customer/orders/${order.id}`)}>View</Button>
                 </div>
               ))}
             </div>
             {pendingOrders.length > 3 && (
-              <button
-                className="view-all-btn"
-                onClick={() => navigate('/customer/orders')}
-              >
-                View All Orders
-              </button>
+              <Button className="view-all-btn" variant="outline" size="sm" onClick={() => navigate('/customer/orders')} icon={<ArrowRight size={13} />}>View All Orders</Button>
             )}
           </div>
         )}

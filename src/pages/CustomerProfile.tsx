@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getCustomerProfile, createOrUpdateCustomerProfile } from '../services/customerProfileService'
 import { CustomerProfile as CustomerProfileType } from '../types'
+import { Button, Input, PageHeader, toast } from '../components/ui'
+import { ArrowLeft, Lock } from 'lucide-react'
 import './CustomerProfile.css'
 
 export default function CustomerProfile() {
@@ -70,6 +72,7 @@ export default function CustomerProfile() {
       // Use createOrUpdateCustomerProfile to handle both create and update
       await createOrUpdateCustomerProfile(user.id, formData)
       setSuccess('Profile updated successfully!')
+      toast('Profile updated successfully!', 'success')
       
       // Reload profile
       const updatedProfile = await getCustomerProfile(user.id)
@@ -80,7 +83,9 @@ export default function CustomerProfile() {
       setTimeout(() => setSuccess(null), 3000)
     } catch (err: any) {
       console.error('Error updating profile:', err)
-      setError(err.message || 'Failed to update profile')
+      const msg = err.message || 'Failed to update profile'
+      setError(msg)
+      toast(msg, 'error')
     } finally {
       setIsSaving(false)
     }
@@ -100,10 +105,10 @@ export default function CustomerProfile() {
     <div className="customer-profile">
       <div className="page-container">
         <div className="profile-header">
-          <h1>Edit Profile</h1>
-          <button className="back-btn" onClick={() => navigate('/customer')}>
-            ← Back to Dashboard
-          </button>
+          <PageHeader
+            title="Edit Profile"
+            actions={<Button variant="outline" size="sm" icon={<ArrowLeft size={14} />} onClick={() => navigate('/customer')}>Back to Dashboard</Button>}
+          />
         </div>
 
         {error && (
@@ -133,27 +138,11 @@ export default function CustomerProfile() {
               <h2>Personal Information</h2>
               
               <div className="form-group">
-                <label htmlFor="full_name">Full Name</label>
-                <input
-                  type="text"
-                  id="full_name"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleInputChange}
-                  placeholder="John Doe"
-                />
+                <Input label="Full Name" required id="full_name" name="full_name" value={formData.full_name} onChange={handleInputChange} placeholder="John Doe" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="phone_number">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone_number"
-                  name="phone_number"
-                  value={formData.phone_number}
-                  onChange={handleInputChange}
-                  placeholder="0123456789"
-                />
+                <Input label="Phone Number" required type="tel" id="phone_number" name="phone_number" value={formData.phone_number} onChange={handleInputChange} placeholder="0123456789" />
               </div>
             </div>
 
@@ -161,66 +150,29 @@ export default function CustomerProfile() {
               <h2>Default Delivery Address</h2>
               
               <div className="form-group">
-                <label htmlFor="delivery_address">Street Address</label>
-                <input
-                  type="text"
-                  id="delivery_address"
-                  name="delivery_address"
-                  value={formData.delivery_address}
-                  onChange={handleInputChange}
-                  placeholder="123 Main Street"
-                />
+                <Input label="Street Address" required id="delivery_address" name="delivery_address" value={formData.delivery_address} onChange={handleInputChange} placeholder="123 Main Street" />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="city">City</label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    placeholder="Tamale"
-                  />
+                  <Input label="City" required id="city" name="city" value={formData.city} onChange={handleInputChange} placeholder="Tamale" />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="region">Region</label>
-                  <input
-                    type="text"
-                    id="region"
-                    name="region"
-                    value={formData.region}
-                    onChange={handleInputChange}
-                    placeholder="Northern Region"
-                  />
+                  <Input label="Region" required id="region" name="region" value={formData.region} onChange={handleInputChange} placeholder="Northern Region" />
                 </div>
               </div>
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="save-btn" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                className="cancel-btn"
-                onClick={() => navigate('/customer')}
-              >
-                Cancel
-              </button>
+              <Button type="submit" variant="primary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Changes'}</Button>
+              <Button type="button" variant="outline" onClick={() => navigate('/customer')}>Cancel</Button>
             </div>
           </form>
 
           <div className="form-section password-section">
             <h2>Security</h2>
-            <button
-              className="change-password-btn"
-              onClick={() => navigate('/customer/settings')}
-            >
-              Change Password
-            </button>
+            <Button className="change-password-btn" variant="secondary" icon={<Lock size={15} />} onClick={() => navigate('/customer/settings')}>Change Password</Button>
           </div>
         </div>
       </div>
