@@ -6,6 +6,8 @@ import { getCustomerOrderById, getOrderStatusTimeline } from '../services/custom
 import { supabase } from '../supabaseClient'
 import { Order } from '../types'
 import { formatCurrency } from '../utils/currency'
+import { Button, EmptyState, PageHeader, StatusBadge, toast } from '../components/ui'
+import { ArrowLeft, ShoppingCart, ShoppingBag } from 'lucide-react'
 import './OrderDetails.css'
 
 export default function OrderDetails() {
@@ -81,11 +83,14 @@ export default function OrderDetails() {
       })
 
       setReorderSuccess(true)
+      toast('Items added to cart! Redirecting to checkout...', 'success')
       setTimeout(() => {
         navigate('/checkout')
       }, 2000)
     } catch (err: any) {
-      setError(err.message || 'Failed to add items to cart')
+      const msg = err.message || 'Failed to add items to cart'
+      setError(msg)
+      toast(msg, 'error')
     }
   }
 
@@ -103,13 +108,11 @@ export default function OrderDetails() {
     return (
       <div className="order-details">
         <div className="page-container">
-          <div className="error-page">
-            <h2>Order Not Found</h2>
-            <p>{error || 'The order you are looking for does not exist.'}</p>
-            <button onClick={() => navigate('/customer/orders')} className="back-btn">
-              ← Back to Orders
-            </button>
-          </div>
+          <EmptyState
+            title="Order Not Found"
+            message={error || 'The order you are looking for does not exist.'}
+            action={{ label: 'Back to Orders', onClick: () => navigate('/customer/orders') }}
+          />
         </div>
       </div>
     )
@@ -121,10 +124,10 @@ export default function OrderDetails() {
     <div className="order-details">
       <div className="page-container">
         <div className="details-header">
-          <h1>Order Details</h1>
-          <button className="back-btn" onClick={() => navigate('/customer/orders')}>
-            ← Back to Orders
-          </button>
+          <PageHeader
+            title="Order Details"
+            actions={<Button variant="outline" size="sm" icon={<ArrowLeft size={14} />} onClick={() => navigate('/customer/orders')}>Back to Orders</Button>}
+          />
         </div>
 
         {error && (
@@ -161,9 +164,9 @@ export default function OrderDetails() {
               </div>
               <div className="header-item">
                 <span className="label">Status</span>
-                <span className={`status-badge ${order.status}`}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('-', ' ')}
-                </span>
+                <StatusBadge status={order.status as any}>
+                  {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(/-/g, ' ')}
+                </StatusBadge>
               </div>
             </div>
           </div>
@@ -277,13 +280,9 @@ export default function OrderDetails() {
         {/* Action Buttons */}
         <div className="details-actions">
           {order.status === 'delivered' && (
-            <button className="reorder-btn" onClick={handleReorder}>
-              Reorder Items
-            </button>
+            <Button variant="primary" icon={<ShoppingCart size={15} />} onClick={handleReorder}>Reorder Items</Button>
           )}
-          <button className="continue-shopping-btn" onClick={() => navigate('/products')}>
-            Continue Shopping
-          </button>
+          <Button variant="secondary" icon={<ShoppingBag size={15} />} onClick={() => navigate('/products')}>Continue Shopping</Button>
         </div>
       </div>
     </div>
