@@ -168,11 +168,11 @@ export default function SellerDashboard() {
                   <tbody>
                     {products.map(p => (
                       <tr key={p.id}>
-                        <td><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>{p.image_url && <img src={p.image_url} alt={p.name} className="product-thumb" />}<span style={{ fontWeight: 600 }}>{p.name}</span></div></td>
-                        <td>{p.category}</td>
-                        <td>GH₵{p.price}</td>
-                        <td>{p.stock_quantity}</td>
-                        <td><span className={`status-badge ${p.status}`}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</span></td>
+                        <td data-label="Product"><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>{p.image_url && <img src={p.image_url} alt={p.name} className="product-thumb" />}<span style={{ fontWeight: 600 }}>{p.name}</span></div></td>
+                        <td data-label="Category">{p.category}</td>
+                        <td data-label="Price">GH₵{p.price}</td>
+                        <td data-label="Stock">{p.stock_quantity}</td>
+                        <td data-label="Status"><span className={`status-badge ${p.status}`}>{p.status === 'active' ? 'Active' : p.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}</span></td>
                       </tr>
                     ))}
                   </tbody>

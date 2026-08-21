@@ -155,7 +155,7 @@ function AppShell() {
   return (
     <div className={`app-container ${isMenuOpen ? 'menu-open' : ''}`}>
       {/* --- Sticky Header --- */}
-      <header className={`app-header ${isScrolled ? 'scrolled' : ''}`}>
+      <header className={`app-header ${isScrolled ? 'scrolled' : ''}`} style={isAdminRoute ? { display: 'none' } : undefined}>
         <div className="header-container container">
           <div className="header-left">
             <button className="menu-toggle" onClick={toggleMenu} aria-label="Toggle Menu">
@@ -196,7 +196,7 @@ function AppShell() {
       </header>
 
       {/* --- Side Drawer Menu --- */}
-      <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`}>
+      <aside className={`side-drawer ${isMenuOpen ? 'open' : ''}`} style={isAdminRoute ? { display: 'none' } : undefined}>
         <div className="drawer-header">
           <div className="drawer-logo">
             <span>TAMALE DAA</span>

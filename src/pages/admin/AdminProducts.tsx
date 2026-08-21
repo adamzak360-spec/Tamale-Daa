@@ -87,23 +87,23 @@ export default function AdminProducts({ products, loading, searchTerm: externalS
             <tbody>
               {filtered.map(product => (
                 <tr key={product.id}>
-                  <td className="product-image-cell">
+                  <td data-label="Image" className="product-image-cell">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="product-thumb" />
                     ) : (
                       <div className="product-thumb-placeholder">No image</div>
                     )}
                   </td>
-                  <td>{product.name}</td>
-                  <td>{product.category}</td>
-                  <td>{formatCurrency(product.price)}</td>
-                  <td>{product.stock_quantity}</td>
-                  <td>
+                  <td data-label="Price">{product.name}</td>
+                  <td data-label="Category">{product.category}</td>
+                  <td data-label="Category">{formatCurrency(product.price)}</td>
+                  <td data-label="Actions">{product.stock_quantity}</td>
+                  <td data-label="Category">
                     <span className={`status-badge ${product.status}`}>
                       {product.status === 'active' ? 'Active' : product.status === 'out-of-stock' ? 'Out of Stock' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="actions-cell">
+                  <td data-label="Status" className="actions-cell">
                     <button onClick={() => onEdit(product)} className="btn-edit" title="Edit product">Edit</button>
                     <button onClick={() => onDelete(product.id, product.name)} className="btn-delete" title="Delete product">Delete</button>
                   </td>

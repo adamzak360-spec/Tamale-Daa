@@ -128,18 +128,18 @@ export default function AdminPromotions() {
             <tbody>
               {promos.map(p => (
                 <tr key={p.id}>
-                  <td>
+                  <td data-label="Title">
                     <div style={{ fontWeight: 600 }}>{p.title}</div>
                     {p.description && <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: 280 }}>{p.description.slice(0, 80)}</div>}
                   </td>
-                  <td><code style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 6 }}>{p.promo_code || '—'}</code></td>
-                  <td>{p.discount_type === 'percent' ? `${p.discount_value}%` : `GH₵${p.discount_value}`}</td>
-                  <td>
+                  <td data-label="Actions"><code style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 6 }}>{p.promo_code || '—'}</code></td>
+                  <td data-label="Active">{p.discount_type === 'percent' ? `${p.discount_value}%` : `GH₵${p.discount_value}`}</td>
+                  <td data-label="Code">
                     <span className="status-badge" style={{ background: p.is_active ? '#f0fdf4' : '#f3f4f6', color: p.is_active ? '#15803d' : '#4b5563' }}>
                       {p.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="actions-cell">
+                  <td data-label="Discount" className="actions-cell">
                     <button onClick={() => toggleActive(p)} className="btn-edit">{p.is_active ? 'Deactivate' : 'Activate'}</button>
                     <button onClick={() => openEdit(p)} className="btn-edit">Edit</button>
                     <button onClick={() => remove(p)} className="btn-delete">Delete</button>

@@ -35,13 +35,13 @@ export default function SellerPayouts({ payouts }: { payouts: Payout[] }) {
             <tbody>
               {payouts.map(p => (
                 <tr key={p.id}>
-                  <td style={{ fontWeight: 600 }}>{formatCurrency(p.amount)}</td>
-                  <td>{p.payment_method || '—'}</td>
-                  <td style={{ fontSize: '0.85rem', color: '#4b5563' }}>{p.payment_reference || '—'}</td>
-                  <td>
+                  <td data-label="Amount" style={{ fontWeight: 600 }}>{formatCurrency(p.amount)}</td>
+                  <td data-label="Amount">{p.payment_method || '—'}</td>
+                  <td data-label="Reference" style={{ fontSize: '0.85rem', color: '#4b5563' }}>{p.payment_reference || '—'}</td>
+                  <td data-label="Amount">
                     <span className="status-badge" style={{ background: STATUS_STYLES[p.status]?.bg, color: STATUS_STYLES[p.status]?.fg, textTransform: 'capitalize' }}>{p.status}</span>
                   </td>
-                  <td>{new Date(p.created_at).toLocaleDateString()}</td>
+                  <td data-label="Method">{new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>

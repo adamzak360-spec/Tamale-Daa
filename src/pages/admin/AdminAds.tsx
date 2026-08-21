@@ -113,7 +113,7 @@ export default function AdminAds() {
             <tbody>
               {ads.map(a => (
                 <tr key={a.id}>
-                  <td>
+                  <td data-label="Banner">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <img src={a.image_url} alt={a.title} style={{ width: 90, height: 45, objectFit: 'cover', borderRadius: 6 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       <div>
@@ -122,13 +122,13 @@ export default function AdminAds() {
                       </div>
                     </div>
                   </td>
-                  <td style={{ textTransform: 'capitalize' }}>{a.position}</td>
-                  <td>
+                  <td data-label="Actions" style={{ textTransform: 'capitalize' }}>{a.position}</td>
+                  <td data-label="Actions">
                     <span className="status-badge" style={{ background: a.is_active ? '#f0fdf4' : '#f3f4f6', color: a.is_active ? '#15803d' : '#4b5563' }}>
                       {a.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td className="actions-cell">
+                  <td data-label="Actions" className="actions-cell">
                     <button onClick={() => toggleActive(a)} className="btn-edit">{a.is_active ? 'Deactivate' : 'Activate'}</button>
                     <button onClick={() => openEdit(a)} className="btn-edit">Edit</button>
                     <button onClick={() => remove(a)} className="btn-delete">Delete</button>

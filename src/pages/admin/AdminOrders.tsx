@@ -146,25 +146,25 @@ export default function AdminOrders({ orders, loading, searchTerm: eSearch, onSe
             <tbody>
               {filtered.map(order => (
                 <tr key={order.id}>
-                  <td className="order-id-cell">
+                  <td data-label="Order ID" className="order-id-cell">
                     <span className="order-id" title={order.id}>
                       {order.id?.substring(0, 8)}...
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Actions">
                     <div className="customer-info">
                       <div className="customer-name">{order.customer_name}</div>
                       <div className="customer-email">{order.customer_email}</div>
                     </div>
                   </td>
-                  <td>{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
-                  <td>{formatCurrency(order.total)}</td>
-                  <td>
+                  <td data-label="Status">{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
+                  <td data-label="Quantity">{formatCurrency(order.total)}</td>
+                  <td data-label="Date">
                     <span className={`status-badge status-${order.status}`}>
                       {order.status.replace('-', ' ')}
                     </span>
                   </td>
-                  <td className="actions-cell">
+                  <td data-label="Status" className="actions-cell">
                     <select
                       value={order.status}
                       onChange={(e) => onStatusChange(order.id!, e.target.value as Order['status'])}
@@ -330,23 +330,23 @@ export function OrderDetailsModal({ order, onClose }: OrderModalProps) {
               <tbody>
                 {order.items.map((item, index) => (
                   <tr key={index}>
-                    <td className="product-image-cell">
+                    <td data-label="Date" className="product-image-cell">
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.name} className="product-thumb" />
                       ) : (
                         <div className="product-thumb-placeholder">No image</div>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Order ID">
                       <div className="product-name">{item.name}</div>
                       {item.selected_size && (
                         <div className="product-variant-small">Size: <strong>{item.selected_size}</strong></div>
                       )}
                       <div className="product-id-small">{item.id}</div>
                     </td>
-                    <td>{item.quantity}</td>
-                    <td>{formatCurrency(item.price)}</td>
-                    <td>{formatCurrency(item.quantity * item.price)}</td>
+                    <td data-label="Date">{item.quantity}</td>
+                    <td data-label="Image">{formatCurrency(item.price)}</td>
+                    <td data-label="Product">{formatCurrency(item.quantity * item.price)}</td>
                   </tr>
                 ))}
               </tbody>

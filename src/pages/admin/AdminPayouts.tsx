@@ -141,15 +141,15 @@ export default function AdminPayouts() {
             <tbody>
               {payouts.map(p => (
                 <tr key={p.id}>
-                  <td style={{ fontWeight: 600 }}>{sellerName(p.seller_id)}</td>
-                  <td>{formatCurrency(p.amount)}</td>
-                  <td>{p.payment_method || '—'}</td>
-                  <td style={{ fontSize: '0.85rem', color: '#4b5563' }}>{p.payment_reference || '—'}</td>
-                  <td>
+                  <td data-label="Seller" style={{ fontWeight: 600 }}>{sellerName(p.seller_id)}</td>
+                  <td data-label="Status">{formatCurrency(p.amount)}</td>
+                  <td data-label="Amount">{p.payment_method || '—'}</td>
+                  <td data-label="Actions" style={{ fontSize: '0.85rem', color: '#4b5563' }}>{p.payment_reference || '—'}</td>
+                  <td data-label="Reference">
                     <span className="status-badge" style={{ background: STATUS_STYLES[p.status]?.bg, color: STATUS_STYLES[p.status]?.fg, textTransform: 'capitalize' }}>{p.status}</span>
                   </td>
-                  <td>{new Date(p.created_at).toLocaleDateString()}</td>
-                  <td className="actions-cell">
+                  <td data-label="Status">{new Date(p.created_at).toLocaleDateString()}</td>
+                  <td data-label="Actions" className="actions-cell">
                     {p.status !== 'paid' && <button onClick={() => markPaid(p)} className="btn-edit" style={{ backgroundColor: '#16a34a' }}>Mark Paid</button>}
                     <button onClick={() => openEdit(p)} className="btn-edit">Edit</button>
                     <button onClick={() => remove(p)} className="btn-delete">Delete</button>

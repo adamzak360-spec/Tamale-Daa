@@ -78,7 +78,7 @@ export default function AdminSellers() {
             <tbody>
               {sellers.map(s => (
                 <tr key={s.id}>
-                  <td>
+                  <td data-label="Store">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {s.logo_url && <img src={s.logo_url} alt={s.business_name} className="product-thumb" />}
                       <div>
@@ -87,13 +87,13 @@ export default function AdminSellers() {
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <div>{s.owner_name || '—'}</div>
                     <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.owner_email}</div>
                     <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{s.owner_phone}</div>
                   </td>
-                  <td>{s.location || '—'}</td>
-                  <td>
+                  <td data-label="Applied">{s.location || '—'}</td>
+                  <td data-label="Payment">
                     <div style={{ textTransform: 'capitalize' }}>{s.payment_method || '—'}</div>
                     {s.payment_reference ? (() => {
                       try {
@@ -111,13 +111,13 @@ export default function AdminSellers() {
                       }
                     })() : null}
                   </td>
-                  <td>
+                  <td data-label="Owner">
                     <span className="status-badge" style={{ background: STATUS_STYLES[s.status]?.bg, color: STATUS_STYLES[s.status]?.fg, textTransform: 'capitalize' }}>
                       {s.status}
                     </span>
                   </td>
-                  <td>{new Date(s.created_at).toLocaleDateString()}</td>
-                  <td className="actions-cell">
+                  <td data-label="Location">{new Date(s.created_at).toLocaleDateString()}</td>
+                  <td data-label="Actions" className="actions-cell">
                     {s.status === 'pending' && (
                       <>
                         <button onClick={() => handleApprove(s)} className="btn-edit" style={{ backgroundColor: '#16a34a' }}>Approve</button>

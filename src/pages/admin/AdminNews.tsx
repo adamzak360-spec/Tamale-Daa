@@ -102,15 +102,15 @@ export default function AdminNews() {
             <tbody>
               {news.map(n => (
                 <tr key={n.id}>
-                  <td style={{ fontWeight: 600, maxWidth: 200 }}>{n.title}</td>
-                  <td style={{ fontSize: '0.85rem', color: '#4b5563', maxWidth: 320 }}>{(n.body || '').slice(0, 120)}{(n.body || '').length > 120 ? '...' : ''}</td>
-                  <td>
+                  <td data-label="Title" style={{ fontWeight: 600, maxWidth: 200 }}>{n.title}</td>
+                  <td data-label="Published" style={{ fontSize: '0.85rem', color: '#4b5563', maxWidth: 320 }}>{(n.body || '').slice(0, 120)}{(n.body || '').length > 120 ? '...' : ''}</td>
+                  <td data-label="Published">
                     <span className="status-badge" style={{ background: n.is_published ? '#f0fdf4' : '#f3f4f6', color: n.is_published ? '#15803d' : '#4b5563' }}>
                       {n.is_published ? 'Published' : 'Draft'}
                     </span>
                   </td>
-                  <td>{new Date(n.created_at).toLocaleDateString()}</td>
-                  <td className="actions-cell">
+                  <td data-label="Published">{new Date(n.created_at).toLocaleDateString()}</td>
+                  <td data-label="Published" className="actions-cell">
                     <button onClick={() => togglePublished(n)} className="btn-edit">{n.is_published ? 'Unpublish' : 'Publish'}</button>
                     <button onClick={() => openEdit(n)} className="btn-edit">Edit</button>
                     <button onClick={() => remove(n)} className="btn-delete">Delete</button>

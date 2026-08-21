@@ -703,3 +703,75 @@ tr:hover td {
   overflow-y: auto;
   flex: 1;
 }
+
+/* ============ Mobile card layout for admin tables ============ */
+@media (max-width: 900px) {
+  .products-table, .orders-table {
+    overflow-x: visible;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+  .products-table table, .orders-table table {
+    display: block;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+  .products-table thead, .orders-table thead {
+    display: none;
+  }
+  .products-table tbody, .products-table tr, .products-table td,
+  .orders-table tbody, .orders-table tr, .orders-table td {
+    display: block;
+    width: 100%;
+  }
+  .products-table tr, .orders-table tr {
+    background: #fff;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+  .products-table td, .orders-table td {
+    padding: 6px 4px 8px;
+    border-bottom: none;
+  }
+  .products-table td::before, .orders-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary);
+    margin-bottom: 3px;
+  }
+  .actions-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .actions-cell button {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .product-thumb {
+    width: 40px;
+    height: 40px;
+  }
+  tr:hover td {
+    background-color: transparent;
+  }
+}
+@media (max-width: 480px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  .products-table tr, .orders-table tr {
+    padding: 10px 12px;
+  }
+}

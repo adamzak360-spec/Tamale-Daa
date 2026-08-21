@@ -36,14 +36,14 @@ export default function SellerOrders({ orders }: { orders: Order[] }) {
             <tbody>
               {orders.map(o => (
                 <tr key={o.id}>
-                  <td><code style={{ fontSize: '0.8rem' }}>{(o.id || '').slice(0, 8)}</code></td>
-                  <td>{o.customer_name || o.customer_email || '—'}</td>
-                  <td>{(o.items || []).length} item{(o.items || []).length === 1 ? '' : 's'}</td>
-                  <td>{formatCurrency((o as any).total_amount)}</td>
-                  <td>
+                  <td data-label="Order ID"><code style={{ fontSize: '0.8rem' }}>{(o.id || '').slice(0, 8)}</code></td>
+                  <td data-label="Status">{o.customer_name || o.customer_email || '—'}</td>
+                  <td data-label="Order ID">{(o.items || []).length} item{(o.items || []).length === 1 ? '' : 's'}</td>
+                  <td data-label="Order ID">{formatCurrency((o as any).total_amount)}</td>
+                  <td data-label="Items">
                     <span className="status-badge" style={{ background: STATUS_STYLES[o.status]?.bg, color: STATUS_STYLES[o.status]?.fg, textTransform: 'capitalize' }}>{o.status.replace(/-/g, ' ')}</span>
                   </td>
-                  <td>{o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}</td>
+                  <td data-label="Date">{o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}</td>
                 </tr>
               ))}
             </tbody>
